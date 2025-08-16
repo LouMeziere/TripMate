@@ -1,12 +1,15 @@
 // Load environment variables from a .env file (for your API keys)
 require('dotenv').config();
 
+const fs = require('fs');
+
+
+const path = require('path');
 const { processUserInput } = require('./integrations/geminiAPI');
 const { searchPlaces } = require('./integrations/foursquareAPI');
 
 // Import the kmeans clustering library
-const kmeans = require('ml-kmeans').default; // <-- FIXED
-console.log(typeof kmeans);
+const { kmeans } = require('ml-kmeans'); // <-- FIXED: Use destructuring to get kmeans function
 //const { calculateDistance } = require('./utils/distanceCalculator');
 
 
@@ -60,7 +63,19 @@ async function generateTrip(userInput) {
 
 // Cluster activities by distance
 function clusterActivitiesByDistance(places, numDays) {
-  const coordinates = places.map((place) => [place.location.lat, place.location.lng]);
+  // Filter out places that don't have valid coordinates
+  const validPlaces = places.filter(place => 
+    place && 
+    typeof place.latitude === 'number' && 
+    typeof place.longitude === 'number'
+  );
+
+  if (validPlaces.length === 0) {
+    console.warn('No valid places with coordinates found!');
+    return [];
+  }
+
+  const coordinates = validPlaces.map((place) => [place.latitude, place.longitude]);
 
   // Perform K-Means clustering
   const { clusters } = kmeans(coordinates, numDays);
