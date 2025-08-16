@@ -83,7 +83,7 @@ function clusterActivitiesByDistance(places, numDays) {
   // Group places by cluster
   const groupedClusters = Array.from({ length: numDays }, () => []);
   clusters.forEach((clusterIndex, i) => {
-    groupedClusters[clusterIndex].push(places[i]);
+    groupedClusters[clusterIndex].push(validPlaces[i]);
   });
 
   return groupedClusters;
@@ -108,7 +108,22 @@ async function test() {
     const trip = await generateTrip(
       "I want to spend 2 days in Bordeaux exploring food and culture. I am travelling with my partner and we are looking for romantic places. We generally prefer a relaxed pace and a medium budget trip."
     );
-    console.log(JSON.stringify(trip, null, 2));
+    
+    // Create timestamp for filename
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `trip-output-${timestamp}.json`;
+    const filepath = path.join(__dirname, 'output', filename);
+
+    // Create output directory if it doesn't exist
+    const outputDir = path.join(__dirname, 'output');
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    // Write to file
+    fs.writeFileSync(filepath, JSON.stringify(trip, null, 2));
+    console.log(`✅ Trip itinerary saved to: ${filename}`);
+     console.log(`📍 Full path: ${filepath}`);
   } catch (error) {
     console.error('Test Error:', error.message);
   }
