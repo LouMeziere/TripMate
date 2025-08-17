@@ -86,9 +86,9 @@ const Dashboard: React.FC = () => {
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-start mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left">
               My Trips
             </h1>
             <p className="text-gray-600">
@@ -103,53 +103,37 @@ const Dashboard: React.FC = () => {
 
         {/* Stats Cards */}
         {!loading && !error && trips.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600">Total Trips</p>
-                  <p className="text-2xl font-bold text-gray-900">{trips.length}</p>
-                </div>
-                <div className="p-1.5 bg-blue-100 rounded-full">
-                  <span className="material-symbols-outlined text-base text-blue-600">assignment_turned_in</span>
-                </div>
+          <div className="flex flex-wrap gap-4 mb-6 bg-gray-50 p-4 rounded-lg shadow-sm">
+            <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500 flex items-center justify-between flex-1 min-w-0">
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase">Total</p>
+                <p className="text-xl font-bold text-gray-900">{trips.length}</p>
               </div>
+              <span className="material-symbols-outlined text-xl text-blue-600">assignment_turned_in</span>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600">Upcoming</p>
-                  <p className="text-2xl font-bold text-gray-900">{getUpcomingTrips().length}</p>
-                </div>
-                <div className="p-1.5 bg-green-100 rounded-full">
-                  <span className="material-symbols-outlined text-base text-green-600">schedule</span>
-                </div>
+            <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-green-500 flex items-center justify-between flex-1 min-w-0">
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase">Upcoming</p>
+                <p className="text-xl font-bold text-gray-900">{getUpcomingTrips().length}</p>
               </div>
+              <span className="material-symbols-outlined text-xl text-green-600">schedule</span>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600">Current</p>
-                  <p className="text-2xl font-bold text-gray-900">{getCurrentTrips().length}</p>
-                </div>
-                <div className="p-1.5 bg-yellow-100 rounded-full">
-                  <span className="material-symbols-outlined text-base text-yellow-600">location_on</span>
-                </div>
+            <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-yellow-500 flex items-center justify-between flex-1 min-w-0">
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase">Current</p>
+                <p className="text-xl font-bold text-gray-900">{getCurrentTrips().length}</p>
               </div>
+              <span className="material-symbols-outlined text-xl text-yellow-600">location_on</span>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-gray-500">
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600">Completed</p>
-                  <p className="text-2xl font-bold text-gray-900">{getPastTrips().length}</p>
-                </div>
-                <div className="p-1.5 bg-gray-100 rounded-full">
-                  <span className="material-symbols-outlined text-base text-gray-600">check_circle</span>
-                </div>
+            <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-gray-500 flex items-center justify-between flex-1 min-w-0">
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase">Completed</p>
+                <p className="text-xl font-bold text-gray-900">{getPastTrips().length}</p>
               </div>
+              <span className="material-symbols-outlined text-xl text-gray-600">check_circle</span>
             </div>
           </div>
         )}

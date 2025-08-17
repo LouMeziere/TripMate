@@ -64,7 +64,7 @@ const TripCard: React.FC<TripCardProps> = ({ trip, onSelect, onEdit, onDelete })
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-200 relative">
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-gray-900 mb-1">{trip.title}</h3>
@@ -73,10 +73,10 @@ const TripCard: React.FC<TripCardProps> = ({ trip, onSelect, onEdit, onDelete })
               {trip.destination}
             </p>
           </div>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(trip.status)}`}>
-            {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
-          </span>
         </div>
+        <span className={`absolute top-4 right-4 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(trip.status)}`}>
+          {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
+        </span>
       </div>
 
       {/* Content */}
