@@ -9,6 +9,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
 
   const isActive = (path: string) => {
+    if (path === '/dashboard') {
+      return location.pathname === '/' || location.pathname === '/dashboard';
+    }
     return location.pathname === path;
   };
 
@@ -27,9 +30,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {/* Navigation Links */}
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 <Link
-                  to="/"
+                  to="/dashboard"
                   className={`${
-                    isActive('/') 
+                    isActive('/dashboard') 
                       ? 'border-blue-500 text-gray-900' 
                       : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                   } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
