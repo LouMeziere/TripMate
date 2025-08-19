@@ -5,7 +5,7 @@ const { processUserInput } = require('./integrations/geminiAPI');
 const { searchPlaces } = require('./integrations/foursquareAPI');
 
 // Import the kmeans clustering library
-const kmeans = require('ml-kmeans').default; // <-- FIXED
+const { kmeans } = require('ml-kmeans'); 
 console.log(typeof kmeans);
 //const { calculateDistance } = require('./utils/distanceCalculator');
 
@@ -42,11 +42,8 @@ async function generateTrip(userInput) {
     // Step 3: Flatten all places into a single array
     const allPlaces = placesResults.flat();
 
-    // Step 4: Cluster activities by distance
-    const clusters = clusterActivitiesByDistance(allPlaces, tripPreferences.duration);
-
-    // Step 5: Assign clusters to days
-    const itinerary = assignClustersToDays(clusters);
+    // Step 4: Create balanced itinerary by activity type and location
+    const itinerary = createBalancedItinerary(allPlaces, tripPreferences.duration);
 
     return {
       preferences: tripPreferences,
@@ -58,28 +55,121 @@ async function generateTrip(userInput) {
   }
 }
 
-// Cluster activities by distance
-function clusterActivitiesByDistance(places, numDays) {
-  const coordinates = places.map((place) => [place.location.lat, place.location.lng]);
-
-  // Perform K-Means clustering
-  const { clusters } = kmeans(coordinates, numDays);
-
-  // Group places by cluster
-  const groupedClusters = Array.from({ length: numDays }, () => []);
-  clusters.forEach((clusterIndex, i) => {
-    groupedClusters[clusterIndex].push(places[i]);
+// Create a balanced itinerary by activity type and location
+function createBalancedItinerary(places, numDays) {
+  // Group places by activity type
+  const groupedByType = groupPlacesByType(places);
+  
+  // Calculate target activities per day
+  const totalPlaces = places.length;
+  const targetPerDay = Math.ceil(totalPlaces / numDays);
+  
+  // Initialize days
+  const days = Array.from({ length: numDays }, (_, index) => ({
+    day: index + 1,
+    activities: []
+  }));
+  
+  // Distribute activities evenly across days, ensuring variety
+  const activityTypes = Object.keys(groupedByType);
+  let currentDay = 0;
+  
+  // Round-robin distribution to ensure variety
+  for (const activityType of activityTypes) {
+    const placesOfType = groupedByType[activityType];
+    
+    for (const place of placesOfType) {
+      // Add to current day if it's not full
+      if (days[currentDay].activities.length < targetPerDay) {
+        days[currentDay].activities.push(place);
+      } else {
+        // Move to next day
+        currentDay = (currentDay + 1) % numDays;
+        days[currentDay].activities.push(place);
+      }
+    }
+  }
+  
+  // Sort activities within each day by geographical proximity
+  days.forEach(day => {
+    if (day.activities.length > 1) {
+      day.activities = sortByProximity(day.activities);
+    }
   });
-
-  return groupedClusters;
+  
+  return days;
 }
 
-// Assign clusters to days
-function assignClustersToDays(clusters) {
-  return clusters.map((cluster, dayIndex) => ({
-    day: dayIndex + 1,
-    activities: cluster,
-  }));
+// Group places by their primary activity type
+function groupPlacesByType(places) {
+  const grouped = {};
+  
+  places.forEach(place => {
+    // Get the primary category
+    const primaryCategory = place.categories[0];
+    const categoryName = primaryCategory ? primaryCategory.name : 'Other';
+    
+    if (!grouped[categoryName]) {
+      grouped[categoryName] = [];
+    }
+    grouped[categoryName].push(place);
+  });
+  
+  return grouped;
+}
+
+// Sort activities by geographical proximity using a simple nearest neighbor approach
+function sortByProximity(activities) {
+  if (activities.length <= 1) return activities;
+  
+  const sorted = [activities[0]]; // Start with first activity
+  const remaining = activities.slice(1);
+  
+  while (remaining.length > 0) {
+    const lastActivity = sorted[sorted.length - 1];
+    let nearestIndex = 0;
+    let nearestDistance = calculateDistance(
+      lastActivity.latitude, 
+      lastActivity.longitude,
+      remaining[0].latitude, 
+      remaining[0].longitude
+    );
+    
+    // Find nearest remaining activity
+    for (let i = 1; i < remaining.length; i++) {
+      const distance = calculateDistance(
+        lastActivity.latitude, 
+        lastActivity.longitude,
+        remaining[i].latitude, 
+        remaining[i].longitude
+      );
+      
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestIndex = i;
+      }
+    }
+    
+    // Add nearest activity to sorted list and remove from remaining
+    sorted.push(remaining[nearestIndex]);
+    remaining.splice(nearestIndex, 1);
+  }
+  
+  return sorted;
+}
+
+// Calculate distance between two points using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const distance = R * c; // Distance in kilometers
+  return distance;
 }
 
 /**
@@ -93,7 +183,13 @@ async function test() {
     const trip = await generateTrip(
       "I want to spend 2 days in Bordeaux exploring food and culture. I am travelling with my partner and we are looking for romantic places. We generally prefer a relaxed pace and a medium budget trip."
     );
-    console.log(JSON.stringify(trip, null, 2));
+    
+    console.log('=== TRIP PREFERENCES ===');
+    console.log(JSON.stringify(trip.preferences, null, 2));
+    console.log('========================');
+    
+    console.log('=== ITINERARY ===');
+    console.log(JSON.stringify(trip.itinerary, null, 2));
   } catch (error) {
     console.error('Test Error:', error.message);
   }
