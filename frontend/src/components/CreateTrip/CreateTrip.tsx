@@ -88,6 +88,10 @@ const CreateTrip: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
 
+  const handleStepClick = (step: number) => {
+    setCurrentStep(step);
+  };
+
   const handleNext = () => {
     if (validateStep(currentStep)) {
       setCurrentStep(prev => Math.min(prev + 1, totalSteps));
@@ -207,7 +211,7 @@ const CreateTrip: React.FC = () => {
         </div>
 
         {/* Step Indicator */}
-        <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
+        <StepIndicator currentStep={currentStep} totalSteps={totalSteps} onStepClick={handleStepClick} />
 
         {/* Form Content */}
         <div className="mt-8 bg-white shadow-lg rounded-lg">
