@@ -54,8 +54,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const isButtonDisabled = !message.trim() || isLoading || disabled;
 
   return (
-    <div className="border-t border-gray-200 bg-white p-4">
-      <form onSubmit={handleSubmit} className="flex items-end space-x-3">
+    <div className="border-t border-gray-200 bg-white p-4 rounded-b-lg">
+      <form onSubmit={handleSubmit} className="flex items-center space-x-3">
         <div className="flex-1 relative">
           <textarea
             ref={textareaRef}
@@ -70,7 +70,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           />
           
           {/* Character counter */}
-          <div className="absolute bottom-1 right-2 text-xs text-gray-400">
+          <div className="absolute bottom-3 right-4 text-xs text-gray-400 bg-white px-1">
             {message.length}/1000
           </div>
         </div>
@@ -106,7 +106,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             </svg>
           ) : (
             <svg 
-              className="w-5 h-5" 
+              className="w-5 h-5 transform rotate-90" 
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"

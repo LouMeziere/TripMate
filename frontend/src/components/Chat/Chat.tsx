@@ -90,70 +90,74 @@ const Chat: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto">
-      {/* Chat Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">AI Travel Assistant</h1>
-            {tripId ? (
-              <p className="text-sm text-gray-500">Planning assistance for Trip {tripId}</p>
-            ) : (
-              <p className="text-sm text-gray-500">General travel planning</p>
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col h-[calc(100vh-8rem)]">
+        {/* Chat Header */}
+        <div className="border-b border-gray-200 px-6 py-4 rounded-t-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">AI Travel Assistant</h1>
+              {tripId ? (
+                <p className="text-sm text-gray-500">Planning assistance for Trip {tripId}</p>
+              ) : (
+                <p className="text-sm text-gray-500">General travel planning</p>
+              )}
+            </div>
+            
+            {tripId && messages.length > 0 && (
+              <button
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to clear this chat history?')) {
+                    chatAPI.clearChatHistory(tripId).then(() => {
+                      setMessages([]);
+                    });
+                  }
+                }}
+                className="text-sm text-gray-500 hover:text-red-600 transition-colors"
+              >
+                Clear History
+              </button>
             )}
           </div>
-          
-          {tripId && messages.length > 0 && (
-            <button
-              onClick={() => {
-                if (window.confirm('Are you sure you want to clear this chat history?')) {
-                  chatAPI.clearChatHistory(tripId).then(() => {
-                    setMessages([]);
-                  });
-                }
-              }}
-              className="text-sm text-gray-500 hover:text-red-600 transition-colors"
-            >
-              Clear History
-            </button>
-          )}
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mx-6 mt-4 rounded-md">
+            <div className="flex">
+              <svg className="w-5 h-5 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span>{error}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Chat Container */}
+        <ChatContainer
+          messages={messages}
+          isLoading={isLoading}
+          onSuggestionClick={handleSuggestionClick}
+          emptyStateMessage={
+            tripId 
+              ? "Ask me anything about your trip planning!" 
+              : "Start a conversation to plan your perfect trip!"
+          }
+        />
+
+        {/* Chat Input */}
+        <div className="rounded-b-lg">
+          <ChatInput
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+            placeholder={
+              tripId 
+                ? "Ask about your trip..." 
+                : "Ask me anything about travel planning..."
+            }
+          />
         </div>
       </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mx-6 mt-4 rounded-md">
-          <div className="flex">
-            <svg className="w-5 h-5 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
-            <span>{error}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Chat Container */}
-      <ChatContainer
-        messages={messages}
-        isLoading={isLoading}
-        onSuggestionClick={handleSuggestionClick}
-        emptyStateMessage={
-          tripId 
-            ? "Ask me anything about your trip planning!" 
-            : "Start a conversation to plan your perfect trip!"
-        }
-      />
-
-      {/* Chat Input */}
-      <ChatInput
-        onSendMessage={handleSendMessage}
-        isLoading={isLoading}
-        placeholder={
-          tripId 
-            ? "Ask about your trip..." 
-            : "Ask me anything about travel planning..."
-        }
-      />
     </div>
   );
 };
