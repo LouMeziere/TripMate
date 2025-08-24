@@ -1,8 +1,9 @@
 // Import the axios HTTP client library to make API requests
 const axios = require('axios');
+const path = require('path');
 
 // Load environment variables from a .env file (for your API keys)
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 // Load your API key from environment variables
 const FOURSQUARE_API_KEY = process.env.FOURSQUARE_API_KEY;

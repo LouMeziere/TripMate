@@ -1,6 +1,7 @@
 
 const axios = require('axios'); // Import the axios HTTP client library to make API requests
-require('dotenv').config(); // Load environment variables from a .env file 
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') }); // Load environment variables from a .env file 
 
 // Load your API key from environment variables
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
