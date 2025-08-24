@@ -16,6 +16,7 @@ yarn.lock
 
 # Output files
 output/
+output_trips/
 
 # OS generated files
 .DS_Store
