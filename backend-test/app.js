@@ -10,7 +10,7 @@ console.log(typeof kmeans);
 
 
 
-    // Step 4: Create balanced itinerary by activity type and location
+// Step 4: Create balanced itinerary by activity type and location
 // Generate a trip object based on user input
 async function generateTrip(userInput) {
   // Step 1: Parse user input into structured preferences
