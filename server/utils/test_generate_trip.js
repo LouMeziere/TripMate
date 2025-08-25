@@ -1,168 +1,221 @@
-const { searchPlaces } = require('../../integrations/foursquareAPI');
+
 const { processUserInput } = require('../../integrations/geminiAPI');
-
-// Import the kmeans clustering library
-const { kmeans } = require('ml-kmeans'); 
-console.log(typeof kmeans);
-//const { calculateDistance } = require('./utils/distanceCalculator');
+const { minutesToTimeString, typicalTimes} = require('./activity_utils/check_opening_hours');
+const { findNearestPlace } = require('./activity_utils/check_distance');
+const { getRestaurants, getActivities } = require('./activity_utils/get_places');
 
 
 
+// Helper function to find an unused meal place
+function findUnusedMealPlace(mealPlaces, mealType, usedActivityPlaceIds, lastActivity = null) {
+  if (!mealPlaces[mealType] || !mealPlaces[mealType].length) {
+    return null;
+  }
+  
+  // Get available places
+  const availablePlaces = mealPlaces[mealType].filter(place => 
+    !usedActivityPlaceIds.has(place.uniqueId)
+  );
+  
+  if (availablePlaces.length === 0) return null;
+  
+  let selectedPlace;
+  
+  // If we have a last activity and it has coordinates, find the nearest place
+  if (lastActivity && lastActivity.latitude && lastActivity.longitude) {
+    selectedPlace = findNearestPlace(
+      lastActivity.latitude, 
+      lastActivity.longitude, 
+      availablePlaces
+    );
+  } else {
+    // Fallback to first available place
+    selectedPlace = availablePlaces[0];
+  }
+  
+  if (selectedPlace) {
+    usedActivityPlaceIds.add(selectedPlace.uniqueId);
+    return { 
+      ...selectedPlace, 
+      time: minutesToTimeString(typicalTimes[mealType]), 
+      type: mealType 
+    };
+  }
+  
+  return null;
+}
 
-    // Step 4: Create balanced itinerary by activity type and location
-// Generate a trip object based on user input
+
+
+
+// Helper function to find an unused activity place with fallback categories
+function findUnusedActivityPlace(activityPlaces, activityCategories, preferredCategoryIndex, usedActivityPlaceIds, lastActivity = null) {
+  for (let offset = 0; offset < activityCategories.length; offset++) {
+    const categoryIndex = (preferredCategoryIndex + offset) % activityCategories.length;
+    const categoryName = activityCategories[categoryIndex];
+    
+    if (activityPlaces[categoryName] && activityPlaces[categoryName].length) {
+      // Get available places in this category
+      const availablePlaces = activityPlaces[categoryName].filter(place => 
+        !usedActivityPlaceIds.has(place.uniqueId)
+      );
+      
+      if (availablePlaces.length > 0) {
+        let selectedPlace;
+        
+        // If we have a last activity and it has coordinates, find the nearest place
+        if (lastActivity && lastActivity.latitude && lastActivity.longitude) {
+          selectedPlace = findNearestPlace(
+            lastActivity.latitude, 
+            lastActivity.longitude, 
+            availablePlaces
+          );
+        } else {
+          // Fallback to first available place
+          selectedPlace = availablePlaces[0];
+        }
+        
+        if (selectedPlace) {
+          usedActivityPlaceIds.add(selectedPlace.uniqueId);
+          const timeSlot = preferredCategoryIndex === 0 ? 'activity1' : 'activity2';
+          return { 
+            ...selectedPlace, 
+            time: minutesToTimeString(typicalTimes[timeSlot]), 
+            type: categoryName 
+          };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+// Helper function to plan a single day
+function planSingleDay(dayNumber, mealPlaces, activityPlaces, activityCategories, usedActivityPlaceIds) {
+  console.log(`Starting day ${dayNumber} planning...`);
+  const dayActivities = [];
+
+  // 1. Add breakfast (08:00)
+  console.log('Looking for breakfast places...');
+  const breakfast = findUnusedMealPlace(mealPlaces, 'breakfast', usedActivityPlaceIds);
+  if (breakfast) {
+    console.log('Added breakfast:', breakfast.name || 'Unknown name');
+    dayActivities.push(breakfast);
+  } else {
+    console.log('No breakfast places found');
+  }
+
+  // 2. Add first activity (10:00) - consider distance from breakfast
+  if (activityCategories.length > 0) {
+    const lastActivity = dayActivities[dayActivities.length - 1];
+    const activity1 = findUnusedActivityPlace(activityPlaces, activityCategories, 0, usedActivityPlaceIds, lastActivity);
+    if (activity1) dayActivities.push(activity1);
+  }
+
+  // 3. Add lunch (12:30) - consider distance from first activity
+  const lastActivityBeforeLunch = dayActivities[dayActivities.length - 1];
+  const lunch = findUnusedMealPlace(mealPlaces, 'lunch', usedActivityPlaceIds, lastActivityBeforeLunch);
+  if (lunch) dayActivities.push(lunch);
+
+  // 4. Add second activity (14:00) - consider distance from lunch
+  if (activityCategories.length > 1) {
+    const lastActivityBeforeSecond = dayActivities[dayActivities.length - 1];
+    const activity2 = findUnusedActivityPlace(activityPlaces, activityCategories, 1, usedActivityPlaceIds, lastActivityBeforeSecond);
+    if (activity2) dayActivities.push(activity2);
+  }
+
+  // 5. Add dinner (19:00) - consider distance from second activity
+  const lastActivityBeforeDinner = dayActivities[dayActivities.length - 1];
+  const dinner = findUnusedMealPlace(mealPlaces, 'dinner', usedActivityPlaceIds, lastActivityBeforeDinner);
+  if (dinner) dayActivities.push(dinner);
+
+  // Keep the chronological order for proper meal timing
+  // Distance optimization already happened during selection
+  console.log(`Day ${dayNumber} final activities:`, dayActivities.length);
+  if (dayActivities.length > 0) {
+    console.log(`Day ${dayNumber} chronological order:`, dayActivities.map(a => `${a.name} (${a.time})`).join(' → '));
+  }
+  
+  return dayActivities;
+}
+
+
+
+
 async function generateTrip(userInput) {
   // Step 1: Parse user input into structured preferences
   const tripPreferences = await processUserInput(userInput);
 
-  // Step 2: Search for places using Foursquare API
-  // We'll use the categories and location from preferences
-  let allPlaces = [];
-  for (const category of tripPreferences.categories) {
-    const params = {
-      query: category,
-      near: tripPreferences.location,
-      limit: 10 // You can adjust this as needed
-    };
-    console.log('Foursquare API params:', params);
-    try {
-      const places = await searchPlaces(params);
-      console.log('Foursquare API results for', category, ':', places);
-      allPlaces = allPlaces.concat(places);
-    } catch (e) {
-      console.error('Foursquare API error for', category, ':', e.message, e.response && e.response.data);
-      continue;
-    }
+  // Step 2: Always call Foursquare for 'breakfast', 'lunch', 'dinner' activities
+  const { allPlaces, mealPlaces } = await getRestaurants(tripPreferences);
+
+  // Step 3: Call Foursquare for other activity/interest which include any activities except meal related
+  const { activityPlaces, allActivityPlaces } = await getActivities(tripPreferences);
+  
+  // Get activity categories for later use
+  const activityCategories = Object.keys(activityPlaces);
+
+  // Step 4: Plan the day as breakfast, activity, lunch, activity, dinner
+  const numDays = tripPreferences.duration;
+  const days = Array.from({ length: numDays }, (_, i) => ({
+    day: i + 1,
+    activities: []
+  }));
+
+  // Track used activity place IDs to avoid repeats
+  const usedActivityPlaceIds = new Set();
+
+  // Plan each day of the trip
+  for (let dayIndex = 0; dayIndex < numDays; dayIndex++) {
+    const dayNumber = dayIndex + 1;
+    days[dayIndex].activities = planSingleDay(
+      dayNumber, 
+      mealPlaces, 
+      activityPlaces, 
+      activityCategories, 
+      usedActivityPlaceIds
+    );
   }
 
-  // Step 3: Create balanced itinerary by activity type and location
-  const itinerary = createBalancedItinerary(allPlaces, tripPreferences.duration);
-
+  console.log('Final itinerary days:', days.map(d => ({ day: d.day, activityCount: d.activities.length })));
   return {
     preferences: tripPreferences,
-    itinerary
+    itinerary: days
   };
 }
 
 
-// Create a balanced itinerary by activity type and location
-function createBalancedItinerary(places, numDays) {
-  // Group places by activity type
-  const groupedByType = groupPlacesByType(places);
-  
-  // Calculate target activities per day
-  const totalPlaces = places.length;
-  const targetPerDay = Math.ceil(totalPlaces / numDays);
-  
-  // Initialize days
-  const days = Array.from({ length: numDays }, (_, index) => ({
-    day: index + 1,
-    activities: []
-  }));
-  
-  // Distribute activities evenly across days, ensuring variety
-  const activityTypes = Object.keys(groupedByType);
-  let currentDay = 0;
-  
-  // Round-robin distribution to ensure variety
-  for (const activityType of activityTypes) {
-    const placesOfType = groupedByType[activityType];
-    
-    for (const place of placesOfType) {
-      // Add to current day if it's not full
-      if (days[currentDay].activities.length < targetPerDay) {
-        days[currentDay].activities.push(place);
-      } else {
-        // Move to next day
-        currentDay = (currentDay + 1) % numDays;
-        days[currentDay].activities.push(place);
-      }
+
+
+
+
+
+
+// Test function to print a sample trip with only important info
+if (require.main === module) {
+  (async () => {
+    const userInput = "I want to spend 2 days in Bordeaux exploring culture. I am travelling with my partner and we are looking for romantic places. We generally prefer a relaxed pace and a medium budget trip.";
+    try {
+      const trip = await generateTrip(userInput);
+      console.log('=== ITINERARY SUMMARY ===');
+      trip.itinerary.forEach(day => {
+        console.log(`Day ${day.day}:`);
+        day.activities.forEach(activity => {
+          const name = activity.name || (activity.venue && activity.venue.name) || 'Unknown';
+          const time = activity.time ? ` at ${activity.time}` : '';
+          console.log(`  - ${activity.type || 'activity'}: ${name}${time}`);
+        });
+      });
+      console.log('========================');
+    } catch (error) {
+      console.error('Test Error:', error.message);
     }
-  }
-  
-  // Sort activities within each day by geographical proximity
-  days.forEach(day => {
-    if (day.activities.length > 1) {
-      day.activities = sortByProximity(day.activities);
-    }
-  });
-  
-  return days;
+  })();
 }
 
-// Group places by their primary activity type
-function groupPlacesByType(places) {
-  const grouped = {};
-  
-  places.forEach(place => {
-    // Get the primary category
-    const primaryCategory = place.categories[0];
-    const categoryName = primaryCategory ? primaryCategory.name : 'Other';
-    
-    if (!grouped[categoryName]) {
-      grouped[categoryName] = [];
-    }
-    grouped[categoryName].push(place);
-  });
-  
-  return grouped;
-}
-
-  // ...existing code...
-// Sort activities by geographical proximity using a simple nearest neighbor approach
-function sortByProximity(activities) {
-  if (activities.length <= 1) return activities;
-  
-  const sorted = [activities[0]]; // Start with first activity
-  const remaining = activities.slice(1);
-  
-  while (remaining.length > 0) {
-    const lastActivity = sorted[sorted.length - 1];
-    let nearestIndex = 0;
-    let nearestDistance = calculateDistance(
-      lastActivity.latitude, 
-      lastActivity.longitude,
-      remaining[0].latitude, 
-      remaining[0].longitude
-    );
-    
-    // Find nearest remaining activity
-    for (let i = 1; i < remaining.length; i++) {
-      const distance = calculateDistance(
-        lastActivity.latitude, 
-        lastActivity.longitude,
-        remaining[i].latitude, 
-        remaining[i].longitude
-      );
-      
-      if (distance < nearestDistance) {
-        nearestDistance = distance;
-        nearestIndex = i;
-      }
-    }
-    
-    // Add nearest activity to sorted list and remove from remaining
-    sorted.push(remaining[nearestIndex]);
-    remaining.splice(nearestIndex, 1);
-  }
-  
-  return sorted;
-}
-
-
-
-// Calculate distance between two points using Haversine formula
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Earth's radius in kilometers
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  const distance = R * c; // Distance in kilometers
-  return distance;
-}
-
-module.exports = generateTrip;
+module.exports = {
+  generateTrip,
+  findUnusedMealPlace,
+  findUnusedActivityPlace,
+  planSingleDay
+};
