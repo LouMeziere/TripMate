@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTrips } from '../../hooks/useTrips';
 import TripList from './TripList';
 import { Trip } from '../../services/api';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const { 
     trips, 
     loading, 
@@ -23,8 +24,8 @@ const Dashboard: React.FC = () => {
   }, [fetchTrips]);
 
   const handleTripSelect = (trip: Trip) => {
-    // TODO: Navigate to trip details page
-    console.log('Selected trip:', trip);
+    // Navigate to trip details page
+    navigate(`/trip/${trip.id}`);
   };
 
   const handleTripEdit = (trip: Trip) => {

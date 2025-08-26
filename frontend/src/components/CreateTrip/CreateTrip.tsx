@@ -122,7 +122,7 @@ const CreateTrip: React.FC = () => {
       console.log('Generated trip description:', tripDescription);
       
       // Call backend to generate trip using the paragraph
-      const response = await tripAPI.generateTrip(tripDescription, false); // Set to true for real AI generation
+      const response = await tripAPI.generateTrip(tripDescription, true); // Use real AI generation
       
       if (!response.success) {
         throw new Error(response.message || 'Failed to generate trip');
