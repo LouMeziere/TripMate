@@ -28,7 +28,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ data, errors, onChange })
             id="destination"
             value={data.destination}
             onChange={(e) => onChange({ destination: e.target.value })}
-            placeholder="Where would you like to go?"
+            placeholder="In which city would you like to go?"
             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               errors.destination ? 'border-red-500' : 'border-gray-300'
             }`}

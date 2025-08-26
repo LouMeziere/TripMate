@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { generateTrip } = require('../utils/tripGenerator');
+const { generateTrip } = require('../utils/test_generate_trip');
 
 // Dummy generated trip response for UI development
 const dummyGeneratedTrip = {

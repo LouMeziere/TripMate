@@ -18,6 +18,7 @@ app.use(express.static(path.join(__dirname, '../client/build')));
 app.use('/api/trips', tripsRoutes);
 app.use('/api/generate-trip', generateRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/test', require('./routes/test'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

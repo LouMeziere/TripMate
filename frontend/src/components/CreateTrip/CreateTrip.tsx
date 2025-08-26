@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTrips } from '../../hooks/useTrips';
+import { tripAPI } from '../../services/api';
+import { convertFormDataToParagraph } from '../../utils/tripParagraphGenerator';
 import StepIndicator from './StepIndicator';
 import BasicInfoStep from './BasicInfoStep';
 import PreferencesStep from './PreferencesStep';
@@ -115,29 +117,20 @@ const CreateTrip: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      // Generate a title from destination and dates
-      const title = `${formData.destination} Adventure`;
+      // Generate natural language paragraph from form data
+      const tripDescription = convertFormDataToParagraph(formData);
+      console.log('Generated trip description:', tripDescription);
       
-      // For now, create a basic itinerary structure
-      // This will be enhanced with real AI generation later
-      const mockItinerary = [
-        {
-          day: 1,
-          activities: [
-            {
-              name: `Explore ${formData.destination}`,
-              category: formData.categories[0] || 'sightseeing',
-              duration: '3 hours',
-              address: `${formData.destination} City Center`,
-              rating: 4.5,
-              description: 'Discover the highlights of your destination'
-            }
-          ]
-        }
-      ];
-
+      // Call backend to generate trip using the paragraph
+      const response = await tripAPI.generateTrip(tripDescription, true); // Use real AI generation
+      
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to generate trip');
+      }
+      
+      // Create trip data structure from the generated response
       const tripData = {
-        title,
+        title: `${formData.destination} Adventure`,
         destination: formData.destination,
         startDate: formData.startDate,
         endDate: formData.endDate,
@@ -145,7 +138,7 @@ const CreateTrip: React.FC = () => {
         budget: formData.budget,
         pace: formData.pace,
         categories: formData.categories,
-        itinerary: mockItinerary,
+        itinerary: response.data.itinerary || [],
       };
 
       const newTrip = await createTrip(tripData);
