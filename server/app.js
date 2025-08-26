@@ -20,7 +20,6 @@ app.use('/api/generate-trip', generateRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/test', require('./routes/test'));
 
-
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'Server is running!' });
