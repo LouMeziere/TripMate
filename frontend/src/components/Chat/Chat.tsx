@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { chatAPI } from '../../services/api';
+import { chatAPI, tripAPI } from '../../services/api';
+import { useTrips } from '../../hooks/useTrips';
 import ChatContainer from './ChatContainer';
 import ChatInput from './ChatInput';
 import { Message } from './ChatMessage';
 
 const Chat: React.FC = () => {
   const { tripId } = useParams<{ tripId?: string }>();
+  const { trips } = useTrips();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tripContext, setTripContext] = useState<any>(null);
 
-  // Load chat history when component mounts or tripId changes
+  // Load trip context and chat history when component mounts or tripId changes
   useEffect(() => {
-    const loadChatHistory = async () => {
+    const loadChatData = async () => {
       if (!tripId) {
         setIsInitialLoading(false);
         return;
@@ -22,20 +25,36 @@ const Chat: React.FC = () => {
       
       try {
         setIsInitialLoading(true);
+        
+        // Load trip context first
+        const currentTrip = trips.find((trip: any) => trip.id === tripId);
+        if (currentTrip) {
+          setTripContext({
+            destination: currentTrip.destination,
+            startDate: currentTrip.startDate,
+            endDate: currentTrip.endDate,
+            travelers: currentTrip.travelers,
+            budget: currentTrip.budget,
+            pace: currentTrip.pace,
+            categories: currentTrip.categories
+          });
+        }
+        
+        // Load chat history
         const response = await chatAPI.getChatHistory(tripId);
         if (response.success) {
           setMessages(response.data);
         }
       } catch (error) {
-        console.error('Failed to load chat history:', error);
-        setError('Failed to load chat history');
+        console.error('Failed to load chat data:', error);
+        setError('Failed to load chat data');
       } finally {
         setIsInitialLoading(false);
       }
     };
 
-    loadChatHistory();
-  }, [tripId]);
+    loadChatData();
+  }, [tripId, trips]);
 
   const handleSendMessage = async (messageContent: string) => {
     if (!messageContent.trim()) return;
@@ -54,8 +73,8 @@ const Chat: React.FC = () => {
     setError(null);
 
     try {
-      // Send message to API
-      const response = await chatAPI.sendMessage(messageContent, tripId, false);
+      // Send message to API with trip context
+      const response = await chatAPI.sendMessage(messageContent, tripId, tripContext, true);
       
       if (response.success && response.data.aiMessage) {
         // Add AI response to chat
@@ -97,7 +116,11 @@ const Chat: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-semibold text-gray-900">AI Travel Assistant</h1>
-              {tripId ? (
+              {tripId && tripContext ? (
+                <p className="text-sm text-gray-500">
+                  Planning assistance for {tripContext.destination} • {tripContext.travelers} {tripContext.travelers === 1 ? 'traveler' : 'travelers'} • {tripContext.budget} budget
+                </p>
+              ) : tripId ? (
                 <p className="text-sm text-gray-500">Planning assistance for Trip {tripId}</p>
               ) : (
                 <p className="text-sm text-gray-500">General travel planning</p>

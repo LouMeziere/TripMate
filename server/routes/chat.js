@@ -1,24 +1,14 @@
 const express = require('express');
 const router = express.Router();
+const { processChatMessage } = require('../../integrations/geminiAPI');
 
-// Dummy chat responses for UI development
-const dummyResponses = [
-  "I'd be happy to help you plan your trip! What destination are you considering?",
-  "That sounds like an amazing trip! Based on your preferences, I can suggest some great activities.",
-  "I found several excellent restaurants that match your taste. Would you like me to add them to your itinerary?",
-  "I've updated your trip to include that activity. Your itinerary now has 8 activities across 3 days.",
-  "The weather looks perfect for your travel dates! I can recommend some outdoor activities if you're interested.",
-  "I can help you adjust your budget. Would you like me to suggest some free or low-cost alternatives?",
-  "That's a great question! Let me find some family-friendly options that would work well for your group."
-];
-
-// Dummy chat history storage
+// In-memory chat history storage (in production, use a database)
 let chatHistory = {};
 
 // POST /api/chat - Send chat message and get AI response
 router.post('/', async (req, res) => {
   try {
-    const { message, tripId, useRealAI = false } = req.body;
+    const { message, tripId, tripContext, useRealAI = true } = req.body;
     
     if (!message) {
       return res.status(400).json({
@@ -44,41 +34,30 @@ router.post('/', async (req, res) => {
       chatHistory[tripId].push(userMessage);
     }
     
-    // Generate AI response
-    let aiResponse;
+    // Get chat history for context
+    const currentHistory = tripId ? chatHistory[tripId] : [];
+    
+    // Generate AI response using Gemini
+    let aiResponseData;
     
     if (useRealAI) {
-      // Real AI integration (for later implementation)
-      // const aiResponse = await processUserInput(message);
-      aiResponse = "Real AI integration coming soon!";
+      aiResponseData = await processChatMessage(message, tripContext, currentHistory);
     } else {
-      // Return dummy response for UI development
-      // Simulate thinking delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Pick a random response or contextual one
-      const isGreeting = message.toLowerCase().includes('hello') || message.toLowerCase().includes('hi');
-      const isAboutFood = message.toLowerCase().includes('food') || message.toLowerCase().includes('restaurant');
-      const isAboutActivities = message.toLowerCase().includes('activity') || message.toLowerCase().includes('do');
-      
-      if (isGreeting) {
-        aiResponse = dummyResponses[0];
-      } else if (isAboutFood) {
-        aiResponse = dummyResponses[2];
-      } else if (isAboutActivities) {
-        aiResponse = dummyResponses[1];
-      } else {
-        aiResponse = dummyResponses[Math.floor(Math.random() * dummyResponses.length)];
-      }
+      // Fallback dummy response for testing
+      aiResponseData = {
+        success: true,
+        response: "I'm here to help with your trip planning! What would you like to know?",
+        suggestions: ['Tell me more', 'Add to trip', 'Show alternatives']
+      };
     }
     
     // Store AI response
     const aiMessage = {
       id: (Date.now() + 1).toString(),
       type: 'ai',
-      content: aiResponse,
+      content: aiResponseData.response,
       timestamp: new Date().toISOString(),
-      suggestions: ['Tell me more', 'Add to trip', 'Show alternatives']
+      suggestions: aiResponseData.suggestions || []
     };
     
     if (tripId) {
