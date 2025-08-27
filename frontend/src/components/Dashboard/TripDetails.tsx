@@ -99,13 +99,30 @@ const TripDetails: React.FC = () => {
 
     return (
       <div className="border-t border-gray-200 bg-gray-50 p-4">
-        <div className="grid grid-cols-1 gap-6">
-          {/* Contact & Price */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left side - Description & Address */}
           <div>
-            <h5 className="font-semibold text-gray-800 mb-3 flex items-center">
-              <span className="mr-2">💰</span>
-              Contact & Price
-            </h5>
+            <h5 className="font-semibold text-gray-800 mb-3">Description & Location</h5>
+            <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+              <div>
+                <h6 className="font-medium text-gray-700 mb-2">Description</h6>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  {activity.description}
+                </p>
+              </div>
+              <div>
+                <h6 className="font-medium text-gray-700 mb-2">Address</h6>
+                <div className="flex items-start text-gray-600 text-sm">
+                  <span className="material-symbols-outlined text-base mr-2 text-blue-500 mt-0.5">location_on</span>
+                  <span>{activity.address}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right side - Price & Contact */}
+          <div>
+            <h5 className="font-semibold text-gray-800 mb-3">Contact & Price</h5>
             <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
               {activity.price !== undefined ? (
                 <div className="flex items-center p-2 bg-green-50 rounded-lg">
@@ -155,6 +172,23 @@ const TripDetails: React.FC = () => {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+        
+        {/* Change Activity Button */}
+        <div className="mt-6 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-600">Want to explore other options for this time slot?</p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleChangeActivity(activity);
+              }}
+              className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors flex items-center space-x-2"
+            >
+              <span className="material-symbols-outlined text-sm">sync_alt</span>
+              <span>Change Activity</span>
+            </button>
           </div>
         </div>
       </div>
@@ -309,14 +343,14 @@ const TripDetails: React.FC = () => {
                                 <div className="absolute left-6 top-16 w-0.5 h-8 bg-gradient-to-b from-blue-300 to-blue-200"></div>
                               )}
                               
-                              <div className="bg-white rounded-lg border border-gray-100 hover:border-blue-200 hover:shadow-sm transition-all duration-200 overflow-hidden">
+                              <div className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
                                 <div 
                                   className="flex items-start p-4 cursor-pointer"
                                   onClick={() => toggleActivityExpansion(activityId)}
                                 >
                                   {/* Time indicator */}
                                   <div className="flex flex-col items-center mr-4 min-w-[4rem]">
-                                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl px-3 py-2 text-sm font-semibold shadow-sm">
+                                    <div className="bg-blue-600 text-white rounded-lg px-3 py-2 text-sm font-semibold">
                                       {activity.scheduledTime || '09:00'}
                                     </div>
                                     <div className="text-xs text-gray-500 mt-2 font-medium bg-gray-100 px-2 py-1 rounded-full">
@@ -327,40 +361,41 @@ const TripDetails: React.FC = () => {
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-start justify-between">
                                       <div className="flex-1 min-w-0">
-                                        <h4 className="font-bold text-gray-900 text-lg mb-2 group-hover:text-blue-700 transition-colors">
+                                        <h4 className="font-semibold text-gray-900 text-lg mb-3 hover:text-blue-600 transition-colors">
                                           {activity.name}
                                         </h4>
-                                        <p className="text-gray-600 text-sm leading-relaxed mb-3">
-                                          {activity.description}
-                                        </p>
-                                        <div className="flex items-center text-gray-500 text-sm">
-                                          <span className="material-symbols-outlined text-base mr-2 text-blue-500">location_on</span>
-                                          <span className="truncate">{activity.address}</span>
+                                        <div className="text-center mt-4">
+                                          <button 
+                                            onClick={() => toggleActivityExpansion(activityId)}
+                                            className="text-gray-400 hover:text-gray-600 text-sm font-medium transition-colors"
+                                          >
+                                            {isExpanded ? 'Show less details' : 'Tap to explore more about this activity'}
+                                          </button>
                                         </div>
                                       </div>
                                       
-                                      <div className="ml-6 flex flex-col items-end space-y-2">
+                                      <div className="ml-4 flex flex-col items-end space-y-2">
+                                        {/* Price and Rating moved to right side */}
                                         <div className="flex items-center space-x-2">
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleChangeActivity(activity);
-                                            }}
-                                            className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors duration-200 flex items-center space-x-1"
-                                          >
-                                            <span className="material-symbols-outlined text-sm">sync_alt</span>
-                                            <span>Change</span>
-                                          </button>
-                                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200">
+                                          {activity.price !== undefined && (
+                                            <div className="flex items-center px-2 py-1 bg-green-50 text-green-700 rounded-full border border-green-200">
+                                              <span className="text-xs font-medium">{'$'.repeat(activity.price)}</span>
+                                            </div>
+                                          )}
+                                          {activity.rating && (
+                                            <div className="flex items-center px-2 py-1 bg-yellow-50 text-yellow-700 rounded-full border border-yellow-200">
+                                              <span className="material-symbols-outlined text-xs mr-1 text-yellow-600">star</span>
+                                              <span className="text-xs font-medium">{activity.rating}</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                        
+                                        <div className="flex items-center space-x-2">
+                                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
                                             {activity.category}
                                           </span>
                                         </div>
-                                        {activity.rating && (
-                                          <div className="flex items-center bg-yellow-50 px-2 py-1 rounded-full border border-yellow-200">
-                                            <span className="material-symbols-outlined text-sm mr-1 text-yellow-600">star</span>
-                                            <span className="text-sm font-semibold text-yellow-700">{activity.rating}</span>
-                                          </div>
-                                        )}
+                                        
                                         <button 
                                           className="flex items-center text-gray-400 hover:text-blue-600 transition-colors"
                                           onClick={(e) => e.stopPropagation()}
