@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { chatAPI } from '../../services/api';
 import ChatContainer from './ChatContainer';
 import ChatInput from './ChatInput';
@@ -11,12 +11,16 @@ interface EmbeddedChatProps {
   className?: string;
 }
 
-const EmbeddedChat: React.FC<EmbeddedChatProps> = ({
+export interface EmbeddedChatRef {
+  sendMessage: (message: string) => void;
+}
+
+const EmbeddedChat = forwardRef<EmbeddedChatRef, EmbeddedChatProps>(({
   tripId,
   tripTitle,
   tripContext,
   className = ""
-}) => {
+}, ref) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -87,6 +91,11 @@ const EmbeddedChat: React.FC<EmbeddedChatProps> = ({
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);
   };
+
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    sendMessage: handleSendMessage
+  }));
 
   // Generate initial suggestions for trip context
   const getInitialSuggestions = () => {
@@ -171,6 +180,8 @@ const EmbeddedChat: React.FC<EmbeddedChatProps> = ({
       </div>
     </div>
   );
-};
+});
+
+EmbeddedChat.displayName = 'EmbeddedChat';
 
 export default EmbeddedChat;

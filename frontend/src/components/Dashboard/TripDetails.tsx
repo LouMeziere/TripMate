@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTrips } from '../../hooks/useTrips';
 import { Trip } from '../../services/api';
-import EmbeddedChat from '../Chat/EmbeddedChat';
+import EmbeddedChat, { EmbeddedChatRef } from '../Chat/EmbeddedChat';
 
 const TripDetails: React.FC = () => {
   const { tripId } = useParams<{ tripId: string }>();
@@ -10,6 +10,7 @@ const TripDetails: React.FC = () => {
   const { trips, loading } = useTrips();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [expandedActivities, setExpandedActivities] = useState<Set<string>>(new Set());
+  const chatRef = useRef<EmbeddedChatRef>(null);
 
   useEffect(() => {
     if (tripId && trips.length > 0) {
@@ -75,8 +76,7 @@ const TripDetails: React.FC = () => {
     return formattedDate;
   };
 
-    const toggleActivityExpansion = (activity: any) => {
-    const activityId = `${activity.name}-${activity.address}`;
+  const toggleActivityExpansion = (activityId: string) => {
     const newExpanded = new Set(expandedActivities);
     if (newExpanded.has(activityId)) {
       newExpanded.delete(activityId);
@@ -86,7 +86,12 @@ const TripDetails: React.FC = () => {
     setExpandedActivities(newExpanded);
   };
 
-  const renderActivityDetails = (activity: any) => {
+  const handleChangeActivity = (activity: any) => {
+    if (chatRef.current) {
+      const message = `I want to change the activity "${activity.name}" in my itinerary. What would you suggest as alternatives?`;
+      chatRef.current.sendMessage(message);
+    }
+  };  const renderActivityDetails = (activity: any) => {
     const activityId = `${activity.name}-${activity.address}`;
     const isExpanded = expandedActivities.has(activityId);
 
@@ -335,16 +340,31 @@ const TripDetails: React.FC = () => {
                                       </div>
                                       
                                       <div className="ml-6 flex flex-col items-end space-y-2">
-                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200">
-                                          {activity.category}
-                                        </span>
+                                        <div className="flex items-center space-x-2">
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleChangeActivity(activity);
+                                            }}
+                                            className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors duration-200 flex items-center space-x-1"
+                                          >
+                                            <span className="material-symbols-outlined text-sm">sync_alt</span>
+                                            <span>Change</span>
+                                          </button>
+                                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200">
+                                            {activity.category}
+                                          </span>
+                                        </div>
                                         {activity.rating && (
                                           <div className="flex items-center bg-yellow-50 px-2 py-1 rounded-full border border-yellow-200">
                                             <span className="material-symbols-outlined text-sm mr-1 text-yellow-600">star</span>
                                             <span className="text-sm font-semibold text-yellow-700">{activity.rating}</span>
                                           </div>
                                         )}
-                                        <button className="flex items-center text-gray-400 hover:text-blue-600 transition-colors">
+                                        <button 
+                                          className="flex items-center text-gray-400 hover:text-blue-600 transition-colors"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
                                           <span className="material-symbols-outlined text-lg">
                                             {isExpanded ? 'expand_less' : 'expand_more'}
                                           </span>
@@ -382,6 +402,7 @@ const TripDetails: React.FC = () => {
         <div className="lg:col-span-1">
           <div className="sticky top-4">
             <EmbeddedChat 
+              ref={chatRef}
               tripId={trip.id}
               tripTitle={trip.title}
               tripContext={{
