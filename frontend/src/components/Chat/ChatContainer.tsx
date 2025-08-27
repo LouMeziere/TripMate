@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import ChatMessage, { Message } from './ChatMessage';
 
 interface ChatContainerProps {
@@ -6,6 +6,7 @@ interface ChatContainerProps {
   isLoading?: boolean;
   onSuggestionClick?: (suggestion: string) => void;
   emptyStateMessage?: string;
+  disableAutoScroll?: boolean;
 }
 
 const ChatContainer: React.FC<ChatContainerProps> = ({
@@ -14,19 +15,6 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
   onSuggestionClick,
   emptyStateMessage = "Start a conversation to plan your perfect trip!"
 }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const lastMessageRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (lastMessageRef.current) {
-      lastMessageRef.current.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'nearest'
-      });
-    }
-  }, [messages, isLoading]);
-
   // Empty state
   if (messages.length === 0 && !isLoading) {
     return (
@@ -76,15 +64,9 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
 
   return (
     <div className="flex-1 overflow-hidden">
-      <div 
-        ref={scrollRef}
-        className="h-full overflow-y-auto p-4 space-y-1"
-      >
+      <div className="h-full overflow-y-auto p-4 space-y-1">
         {messages.map((message, index) => (
-          <div
-            key={message.id}
-            ref={index === messages.length - 1 ? lastMessageRef : null}
-          >
+          <div key={message.id}>
             <ChatMessage 
               message={message} 
               onSuggestionClick={onSuggestionClick}
