@@ -47,6 +47,9 @@ export interface Trip {
       rating: number;
       description?: string;
       scheduledTime?: string;
+      tel?: string;
+      email?: string;
+      price?: number;
     }[];
   }[];
 }
