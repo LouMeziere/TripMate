@@ -14,11 +14,13 @@ const Chat: React.FC = () => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tripContext, setTripContext] = useState<any>(null);
+  const [selectedTripTitle, setSelectedTripTitle] = useState<string | null>(null);
 
   // Load trip context and chat history when component mounts or tripId changes
   useEffect(() => {
     const loadChatData = async () => {
       if (!tripId) {
+        setSelectedTripTitle(null); // No trip selected
         setIsInitialLoading(false);
         return;
       }
@@ -29,6 +31,7 @@ const Chat: React.FC = () => {
         // Load trip context first
         const currentTrip = trips.find((trip: any) => trip.id === tripId);
         if (currentTrip) {
+          setSelectedTripTitle(currentTrip.title); // Set trip title
           setTripContext({
             destination: currentTrip.destination,
             startDate: currentTrip.startDate,
@@ -36,8 +39,11 @@ const Chat: React.FC = () => {
             travelers: currentTrip.travelers,
             budget: currentTrip.budget,
             pace: currentTrip.pace,
-            categories: currentTrip.categories
+            categories: currentTrip.categories,
+            itinerary: currentTrip.itinerary // Include the complete itinerary
           });
+        } else {
+          setSelectedTripTitle(null);
         }
         
         // Load chat history
@@ -97,6 +103,15 @@ const Chat: React.FC = () => {
     handleSendMessage(suggestion);
   };
 
+  // Generate initial suggestions based on trip context
+  const getInitialSuggestions = () => {
+    if (!tripContext) {
+      return ['Plan a trip', 'Travel tips', 'Budget advice'];
+    } else {
+      return ['Change an activity', 'Local recommendations', 'Transportation help'];
+    }
+  };
+
   if (isInitialLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -116,14 +131,31 @@ const Chat: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-semibold text-gray-900">AI Travel Assistant</h1>
+              
+              {/* Selected Trip Indicator */}
+              <div className="flex items-center mt-2">
+                <span className="text-sm font-medium text-gray-700">Selected trip:</span>
+                <span className="ml-2 px-2 py-1 rounded-md text-sm">
+                  {selectedTripTitle ? (
+                    <span className="bg-blue-100 text-blue-800 font-medium">
+                      {selectedTripTitle}
+                    </span>
+                  ) : (
+                    <span className="bg-gray-100 text-gray-600">
+                      None
+                    </span>
+                  )}
+                </span>
+              </div>
+              
               {tripId && tripContext ? (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 mt-1">
                   Planning assistance for {tripContext.destination} • {tripContext.travelers} {tripContext.travelers === 1 ? 'traveler' : 'travelers'} • {tripContext.budget} budget
                 </p>
               ) : tripId ? (
-                <p className="text-sm text-gray-500">Planning assistance for Trip {tripId}</p>
+                <p className="text-sm text-gray-500 mt-1">Planning assistance for Trip {tripId}</p>
               ) : (
-                <p className="text-sm text-gray-500">General travel planning</p>
+                <p className="text-sm text-gray-500 mt-1">General travel planning</p>
               )}
             </div>
             
@@ -161,6 +193,7 @@ const Chat: React.FC = () => {
           messages={messages}
           isLoading={isLoading}
           onSuggestionClick={handleSuggestionClick}
+          initialSuggestions={getInitialSuggestions()}
           emptyStateMessage={
             tripId 
               ? "Ask me anything about your trip planning!" 

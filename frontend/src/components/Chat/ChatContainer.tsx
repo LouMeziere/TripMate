@@ -7,13 +7,15 @@ interface ChatContainerProps {
   onSuggestionClick?: (suggestion: string) => void;
   emptyStateMessage?: string;
   disableAutoScroll?: boolean;
+  initialSuggestions?: string[];
 }
 
 const ChatContainer: React.FC<ChatContainerProps> = ({
   messages,
   isLoading = false,
   onSuggestionClick,
-  emptyStateMessage = "Start a conversation to plan your perfect trip!"
+  emptyStateMessage = "Start a conversation to plan your perfect trip!",
+  initialSuggestions = ["Plan a trip", "Travel tips", "Budget advice"]
 }) => {
   // Empty state
   if (messages.length === 0 && !isLoading) {
@@ -42,12 +44,7 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
             {emptyStateMessage}
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
-            {[
-              "Plan a trip to Paris",
-              "Find restaurants nearby",
-              "What should I pack?",
-              "Budget travel tips"
-            ].map((suggestion, index) => (
+            {initialSuggestions.map((suggestion, index) => (
               <button
                 key={index}
                 onClick={() => onSuggestionClick?.(suggestion)}

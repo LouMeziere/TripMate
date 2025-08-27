@@ -6,12 +6,14 @@ import { Message } from './ChatMessage';
 
 interface EmbeddedChatProps {
   tripId: string;
+  tripTitle: string;
   tripContext?: any;
   className?: string;
 }
 
 const EmbeddedChat: React.FC<EmbeddedChatProps> = ({
   tripId,
+  tripTitle,
   tripContext,
   className = ""
 }) => {
@@ -86,6 +88,11 @@ const EmbeddedChat: React.FC<EmbeddedChatProps> = ({
     handleSendMessage(suggestion);
   };
 
+  // Generate initial suggestions for trip context
+  const getInitialSuggestions = () => {
+    return ['Change an activity', 'Local recommendations', 'Transportation help'];
+  };
+
   if (isInitialLoading) {
     return (
       <div className={`bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col ${className}`}>
@@ -106,7 +113,14 @@ const EmbeddedChat: React.FC<EmbeddedChatProps> = ({
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">AI Assistant</h3>
-            <p className="text-xs text-gray-500">Ask me anything about this trip</p>
+            
+            {/* Selected Trip Indicator */}
+            <div className="flex items-center mt-1">
+              <span className="text-xs text-gray-600">Selected trip:</span>
+              <span className="ml-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded font-medium">
+                {tripTitle}
+              </span>
+            </div>
           </div>
           
           {messages.length > 0 && (
@@ -143,7 +157,8 @@ const EmbeddedChat: React.FC<EmbeddedChatProps> = ({
         messages={messages}
         isLoading={isLoading}
         onSuggestionClick={handleSuggestionClick}
-        emptyStateMessage="Ask me about modifying your trip, adding activities, or any travel questions!"
+        initialSuggestions={getInitialSuggestions()}
+        emptyStateMessage="Ask me about modifying your trip or any travel questions!"
       />
 
       {/* Chat Input */}

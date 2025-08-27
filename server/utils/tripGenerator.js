@@ -78,12 +78,28 @@ function clusterActivitiesByDistance(places, numDays) {
   return groupedClusters;
 }
 
-// Assign clusters to days
+// Assign clusters to days with scheduled times
 function assignClustersToDays(clusters) {
-  return clusters.map((cluster, dayIndex) => ({
-    day: dayIndex + 1,
-    activities: cluster,
-  }));
+  return clusters.map((cluster, dayIndex) => {
+    // Schedule activities throughout the day
+    const scheduledActivities = cluster.map((activity, activityIndex) => {
+      const startTimes = ['09:00', '11:30', '14:00', '16:30', '19:00']; // Morning, late morning, afternoon, late afternoon, evening
+      const durations = ['2h', '2h', '1.5h', '2h', '2.5h']; // Typical activity durations
+      
+      const timeIndex = activityIndex % startTimes.length;
+      
+      return {
+        ...activity,
+        scheduledTime: startTimes[timeIndex],
+        duration: durations[timeIndex]
+      };
+    });
+
+    return {
+      day: dayIndex + 1,
+      activities: scheduledActivities,
+    };
+  });
 }
 
 module.exports = {

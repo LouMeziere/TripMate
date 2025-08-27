@@ -186,6 +186,16 @@ const TripDetails: React.FC = () => {
                     <div className="space-y-4">
                       {dayPlan.activities.map((activity, index) => (
                         <div key={index} className="flex items-start p-4 bg-gray-50 rounded-lg">
+                          {/* Time indicator */}
+                          <div className="flex flex-col items-center mr-4">
+                            <div className="bg-blue-600 text-white rounded-lg px-2 py-1 text-xs font-medium min-w-[3rem] text-center">
+                              {activity.scheduledTime || '09:00'}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {activity.duration || '2h'}
+                            </div>
+                          </div>
+                          
                           <div className="flex-1">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
@@ -200,7 +210,6 @@ const TripDetails: React.FC = () => {
                                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                   {activity.category}
                                 </span>
-                                <p className="text-sm text-gray-500 mt-1">{activity.duration}</p>
                                 {activity.rating && (
                                   <p className="text-sm text-gray-500 flex items-center mt-1">
                                     <span className="material-symbols-outlined text-sm mr-1 text-yellow-500">star</span>
@@ -234,6 +243,7 @@ const TripDetails: React.FC = () => {
           <div className="sticky top-4">
             <EmbeddedChat 
               tripId={trip.id}
+              tripTitle={trip.title}
               tripContext={{
                 destination: trip.destination,
                 startDate: trip.startDate,
@@ -241,7 +251,8 @@ const TripDetails: React.FC = () => {
                 travelers: trip.travelers,
                 budget: trip.budget,
                 pace: trip.pace,
-                categories: trip.categories
+                categories: trip.categories,
+                itinerary: trip.itinerary // Include the complete itinerary
               }}
               className="h-[800px]"
             />
