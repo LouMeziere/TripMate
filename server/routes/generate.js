@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { generateTrip } = require('../utils/test_generate_trip');
+const { transformToSimpleFormat } = require('../utils/tripJSONFormatter');
 
 // Dummy generated trip response for UI development
 const dummyGeneratedTrip = {
@@ -100,11 +101,13 @@ router.post('/', async (req, res) => {
     
     // For MVP, return dummy data. Later we'll connect real generation
     if (useRealGeneration) {
-      // Real trip generation (for later implementation)
+      // Real trip generation with simple format transformation
       const generatedTrip = await generateTrip(userInput);
+      const simpleTrip = transformToSimpleFormat(generatedTrip);
+      
       res.json({
         success: true,
-        data: generatedTrip,
+        data: simpleTrip,
         message: 'Trip generated successfully using AI'
       });
     } else {

@@ -127,8 +127,8 @@ const TripDetails: React.FC = () => {
               {activity.price !== undefined ? (
                 <div className="flex items-center p-2 bg-green-50 rounded-lg">
                   <span className="text-green-600 mr-2">💵</span>
-                  <div>
-                    <span className="font-medium text-gray-800">Price Level:</span>
+                  <div className="text-center flex-1">
+                    <span className="font-medium text-gray-800 block">Price Level:</span>
                     <div className="text-green-700 font-semibold">
                       {'$'.repeat(activity.price)} ({
                         activity.price === 1 ? 'Budget-friendly' : 
@@ -139,14 +139,14 @@ const TripDetails: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="text-sm text-gray-500">Price information not available</div>
+                <div className="text-sm text-gray-500 text-center">Price information not available</div>
               )}
               
               {activity.tel ? (
                 <div className="flex items-center p-2 hover:bg-gray-50 rounded-lg">
                   <span className="text-blue-600 mr-2">📞</span>
-                  <div>
-                    <span className="font-medium text-gray-800">Phone:</span>
+                  <div className="text-center flex-1">
+                    <span className="font-medium text-gray-800 block">Phone:</span>
                     <div>
                       <a href={`tel:${activity.tel}`} className="text-blue-600 hover:underline font-medium">
                         {activity.tel}
@@ -155,14 +155,14 @@ const TripDetails: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="text-sm text-gray-500">Phone number not available</div>
+                <div className="text-sm text-gray-500 text-center">Phone number not available</div>
               )}
               
               {activity.email && (
                 <div className="flex items-center p-2 hover:bg-gray-50 rounded-lg">
                   <span className="text-blue-600 mr-2">✉️</span>
-                  <div>
-                    <span className="font-medium text-gray-800">Email:</span>
+                  <div className="text-center flex-1">
+                    <span className="font-medium text-gray-800 block">Email:</span>
                     <div>
                       <a href={`mailto:${activity.email}`} className="text-blue-600 hover:underline font-medium">
                         {activity.email}
