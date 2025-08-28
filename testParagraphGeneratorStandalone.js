@@ -10,7 +10,6 @@ function convertFormDataToParagraph(formData) {
     travelers,
     budget,
     pace,
-    interests,
     categories
   } = formData;
 
@@ -62,32 +61,40 @@ function convertFormDataToParagraph(formData) {
     return paceMap[pace] || 'moderate pace';
   };
 
-  // Helper function to format interests
-  const getInterestsText = () => {
-    if (!interests || interests.length === 0) return '';
+  // Helper function to derive interests from categories
+  const getInterestsFromCategories = () => {
+    if (!categories || categories.length === 0) return '';
     
-    const interestMap = {
-      culture: 'cultural experiences',
-      food: 'culinary adventures',
-      nature: 'nature and outdoor activities',
-      adventure: 'adventure sports',
-      relaxation: 'relaxation and wellness',
-      nightlife: 'nightlife and entertainment',
-      shopping: 'shopping experiences',
-      art: 'art and museums',
-      architecture: 'architectural wonders',
-      photography: 'photography opportunities'
+    // Map categories to interest-like descriptions
+    const categoryToInterestMap = {
+      'restaurants': 'culinary adventures',
+      'attractions': 'cultural experiences and sightseeing',
+      'entertainment': 'entertainment and shows',
+      'shopping': 'shopping experiences',
+      'outdoor': 'nature and outdoor activities',
+      'museums': 'art and cultural institutions',
+      'wellness': 'relaxation and wellness',
+      'sports': 'sports and recreational activities',
+      'transportation': 'local transportation experiences',
+      'nightlife': 'nightlife and evening entertainment',
+      'cultural': 'cultural experiences and traditions',
+      'beaches': 'beach activities and water sports'
     };
 
-    const mappedInterests = interests.map(interest => interestMap[interest] || interest);
+    const derivedInterests = categories
+      .map(cat => categoryToInterestMap[cat])
+      .filter(Boolean)
+      .slice(0, 3); // Limit to 3 main interests for readability
     
-    if (mappedInterests.length === 1) {
-      return ` I'm particularly interested in ${mappedInterests[0]}.`;
-    } else if (mappedInterests.length === 2) {
-      return ` I'm particularly interested in ${mappedInterests[0]} and ${mappedInterests[1]}.`;
+    if (derivedInterests.length === 0) return '';
+    
+    if (derivedInterests.length === 1) {
+      return ` I'm particularly interested in ${derivedInterests[0]}.`;
+    } else if (derivedInterests.length === 2) {
+      return ` I'm particularly interested in ${derivedInterests[0]} and ${derivedInterests[1]}.`;
     } else {
-      const lastInterest = mappedInterests.pop();
-      return ` I'm particularly interested in ${mappedInterests.join(', ')}, and ${lastInterest}.`;
+      const lastInterest = derivedInterests.pop();
+      return ` I'm particularly interested in ${derivedInterests.join(', ')}, and ${lastInterest}.`;
     }
   };
 
@@ -140,8 +147,8 @@ function convertFormDataToParagraph(formData) {
   // Add budget and pace
   paragraph += ` with a ${getBudgetText()} budget in mind and prefer a ${getPaceText()}`;
   
-  // Add interests
-  const interestsText = getInterestsText();
+  // Add interests derived from categories
+  const interestsText = getInterestsFromCategories();
   if (interestsText) {
     paragraph += `.${interestsText}`;
   } else {
@@ -175,7 +182,7 @@ function runTests() {
     travelers: 2,
     budget: 'medium',
     pace: 'moderate',
-    interests: ['culture', 'food', 'art'],
+    interests: [],
     categories: ['restaurants', 'museums', 'attractions']
   };
   console.log('Input:', JSON.stringify(tokyoTrip, null, 2));
@@ -192,7 +199,7 @@ function runTests() {
     travelers: 1,
     budget: 'high',
     pace: 'relaxed',
-    interests: ['art', 'shopping', 'relaxation'],
+    interests: [],
     categories: ['museums', 'shopping', 'wellness']
   };
   console.log('Input:', JSON.stringify(parisTrip, null, 2));
@@ -209,7 +216,7 @@ function runTests() {
     travelers: 6,
     budget: 'low',
     pace: 'active',
-    interests: ['adventure', 'nightlife', 'architecture'],
+    interests: [],
     categories: ['outdoor', 'entertainment', 'attractions']
   };
   console.log('Input:', JSON.stringify(barcelonaTrip, null, 2));

@@ -221,24 +221,6 @@ const CategoriesStep: React.FC<CategoriesStepProps> = ({ data, errors, onChange 
         </div>
       )}
 
-      {/* Recommendations based on interests */}
-      {data.interests && data.interests.length > 0 && data.categories.length === 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-          <h4 className="text-sm font-medium text-yellow-800 mb-2">
-            💡 Suggested Categories Based on Your Interests:
-          </h4>
-          <div className="space-y-1 text-sm text-yellow-700">
-            {data.interests.includes('food') && <p>• Consider selecting "Restaurants" for dining experiences</p>}
-            {data.interests.includes('culture') && <p>• "Museums & Galleries" and "Cultural Experiences" might interest you</p>}
-            {data.interests.includes('nature') && <p>• "Outdoor Activities" and "Beaches & Water" are great options</p>}
-            {data.interests.includes('adventure') && <p>• "Sports & Recreation" could add excitement to your trip</p>}
-            {data.interests.includes('relaxation') && <p>• "Wellness & Spa" aligns with your relaxation preference</p>}
-            {data.interests.includes('nightlife') && <p>• "Nightlife" and "Entertainment" would suit your evening interests</p>}
-            {data.interests.includes('shopping') && <p>• "Shopping" is a perfect match for your interests</p>}
-            {data.interests.includes('art') && <p>• "Museums & Galleries" would be ideal for art enthusiasts</p>}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

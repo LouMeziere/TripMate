@@ -74,9 +74,7 @@ const CreateTrip: React.FC = () => {
         break;
       
       case 2: // Preferences
-        if (formData.interests.length === 0) {
-          errors.interests = 'Please select at least one interest';
-        }
+        // No validation needed for preferences step anymore
         break;
       
       case 3: // Categories
