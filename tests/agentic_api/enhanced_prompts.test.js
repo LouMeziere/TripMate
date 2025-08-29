@@ -5,7 +5,7 @@
  * the AI to generate search commands when users ask for places.
  */
 
-const { processChatMessage } = require('./integrations/geminiAPI');
+const { processChatMessage } = require('../../integrations/geminiAPI');
 
 // Mock trip context for testing
 const mockTripContext = {
@@ -69,7 +69,7 @@ async function testSearchPromptGeneration() {
     
     try {
       // Let's temporarily patch the processChatMessage to log the prompt
-      const originalProcessChatMessage = require('./integrations/geminiAPI').processChatMessage;
+      const originalProcessChatMessage = require('../../integrations/geminiAPI').processChatMessage;
       
       // We'll need to read the source and modify it to log the prompt
       // For now, let's just call it and analyze the result
