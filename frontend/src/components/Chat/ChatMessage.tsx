@@ -1,4 +1,26 @@
 import React from 'react';
+import SearchResults from './SearchResults';
+
+export interface SearchResult {
+  id: string;
+  name: string;
+  address: string;
+  category: string;
+  distance?: string;
+  rating?: number;
+  price?: number;
+  website?: string;
+  hours?: any;
+}
+
+export interface SearchResultsData {
+  success: boolean;
+  results: SearchResult[];
+  searchQuery: string;
+  searchLocation: string;
+  resultCount: number;
+  error?: string;
+}
 
 export interface Message {
   id: string;
@@ -6,14 +28,22 @@ export interface Message {
   content: string;
   timestamp: string;
   suggestions?: string[];
+  searchResults?: SearchResultsData;
 }
 
 interface ChatMessageProps {
   message: Message;
   onSuggestionClick?: (suggestion: string) => void;
+  onAddToTrip?: (place: SearchResult) => void;
+  onGetDetails?: (place: SearchResult) => void;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSuggestionClick }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ 
+  message, 
+  onSuggestionClick, 
+  onAddToTrip, 
+  onGetDetails 
+}) => {
   const isUser = message.type === 'user';
   const isAI = message.type === 'ai';
 
@@ -26,7 +56,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSuggestionClick })
 
   return (
     <div className={`flex mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`flex max-w-xs lg:max-w-md ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div className={`flex ${isUser ? 'max-w-xs lg:max-w-md' : 'max-w-md lg:max-w-2xl'} ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Avatar */}
         <div className={`flex-shrink-0 ${isUser ? 'ml-3' : 'mr-3'}`}>
           {isUser ? (
@@ -80,6 +110,15 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSuggestionClick })
                 </button>
               ))}
             </div>
+          )}
+
+          {/* Search Results */}
+          {isAI && message.searchResults && (
+            <SearchResults 
+              searchResults={message.searchResults}
+              onAddToTrip={onAddToTrip}
+              onGetDetails={onGetDetails}
+            />
           )}
         </div>
       </div>

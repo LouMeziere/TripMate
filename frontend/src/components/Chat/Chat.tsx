@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { chatAPI, tripAPI } from '../../services/api';
+import { chatAPI } from '../../services/api';
 import { useTrips } from '../../hooks/useTrips';
 import ChatContainer from './ChatContainer';
 import ChatInput from './ChatInput';
-import { Message } from './ChatMessage';
+import { Message, SearchResult } from './ChatMessage';
 
 const Chat: React.FC = () => {
   const { tripId } = useParams<{ tripId?: string }>();
@@ -83,8 +83,14 @@ const Chat: React.FC = () => {
       const response = await chatAPI.sendMessage(messageContent, tripId, tripContext, true);
       
       if (response.success && response.data.aiMessage) {
+        // Create AI message with search results if they exist
+        const aiMessage: Message = {
+          ...response.data.aiMessage,
+          searchResults: response.data.searchResults
+        };
+        
         // Add AI response to chat
-        setMessages(prev => [...prev, response.data.aiMessage]);
+        setMessages(prev => [...prev, aiMessage]);
       } else {
         throw new Error('Invalid response from server');
       }
@@ -101,6 +107,22 @@ const Chat: React.FC = () => {
 
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);
+  };
+
+  // Handle adding a place to the trip
+  const handleAddToTrip = (place: SearchResult) => {
+    console.log('Adding place to trip:', place);
+    // TODO: Implement trip addition functionality
+    // For now, just show a notification or update state
+    alert(`Added "${place.name}" to your trip! (Feature coming soon)`);
+  };
+
+  // Handle getting more details about a place
+  const handleGetDetails = (place: SearchResult) => {
+    console.log('Getting details for place:', place);
+    // TODO: Implement details view/modal
+    // For now, just show basic info
+    alert(`Details for ${place.name}:\n${place.address}\nCategory: ${place.category}`);
   };
 
   // Generate initial suggestions based on trip context
@@ -124,13 +146,13 @@ const Chat: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col h-[calc(100vh-8rem)]">
+    <div className="max-w-5xl mx-auto p-4">
+      <div className="bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col h-[calc(100vh-6rem)]">
         {/* Chat Header */}
-        <div className="border-b border-gray-200 px-6 py-4 rounded-t-lg">
+        <div className="border-b border-gray-200 px-4 py-3 rounded-t-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">AI Travel Assistant</h1>
+              <h1 className="text-lg font-semibold text-gray-900">AI Travel Assistant</h1>
               
               {/* Selected Trip Indicator */}
               <div className="flex items-center mt-2">
@@ -178,7 +200,7 @@ const Chat: React.FC = () => {
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mx-6 mt-4 rounded-md">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mx-4 mt-3 rounded-md">
             <div className="flex">
               <svg className="w-5 h-5 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
@@ -193,6 +215,8 @@ const Chat: React.FC = () => {
           messages={messages}
           isLoading={isLoading}
           onSuggestionClick={handleSuggestionClick}
+          onAddToTrip={handleAddToTrip}
+          onGetDetails={handleGetDetails}
           initialSuggestions={getInitialSuggestions()}
           emptyStateMessage={
             tripId 
