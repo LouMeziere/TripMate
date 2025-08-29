@@ -191,10 +191,15 @@ IMPORTANT: Only use search when the user clearly specifies a location and wants 
     // Extract the generated response
     const generatedText = response.data.candidates[0].content.parts[0].text;
     
+    // Parse search intent from the AI response
+    const searchIntent = extractSearchIntent(generatedText);
+    
     return {
       success: true,
-      response: generatedText.trim(),
-      suggestions: generateSuggestions(message, tripContext)
+      response: searchIntent.cleanResponse,
+      suggestions: generateSuggestions(message, tripContext),
+      searchIntent: searchIntent.hasSearch ? searchIntent.searchData : null,
+      searchError: searchIntent.error || null
     };
 
   } catch (error) {
@@ -204,7 +209,86 @@ IMPORTANT: Only use search when the user clearly specifies a location and wants 
     return {
       success: false,
       response: "I'm having trouble connecting right now, but I'd love to help you plan your trip! Could you try asking again?",
-      suggestions: ['Tell me about your destination', 'Help with activities', 'Budget advice']
+      suggestions: ['Tell me about your destination', 'Help with activities', 'Budget advice'],
+      searchIntent: null,
+      searchError: null
+    };
+  }
+}
+
+/**
+ * Function: extractSearchIntent
+ * =============================
+ * Extracts and validates search commands from AI responses.
+ * Parses <SEARCH>{"query":"...","location":"...","limit":5}</SEARCH> tags.
+ * 
+ * @param {string} aiResponse - The raw AI response text
+ * @returns {object} - { hasSearch: boolean, searchData: object|null, cleanResponse: string }
+ */
+function extractSearchIntent(aiResponse) {
+  try {
+    // Look for <SEARCH>...</SEARCH> tags in the response
+    const searchMatch = aiResponse.match(/<SEARCH>(.*?)<\/SEARCH>/);
+    
+    if (searchMatch) {
+      try {
+        // Parse the JSON inside the search tags
+        const searchData = JSON.parse(searchMatch[1]);
+        
+        // Validate required fields
+        if (!searchData.query || !searchData.location) {
+          console.warn('Search command missing required fields:', searchData);
+          return { 
+            hasSearch: false, 
+            searchData: null, 
+            cleanResponse: aiResponse,
+            error: 'Missing required fields (query, location)' 
+          };
+        }
+        
+        // Set default limit if not provided
+        if (!searchData.limit) {
+          searchData.limit = 5;
+        }
+        
+        // Remove the search tag from the response for clean display
+        const cleanResponse = aiResponse.replace(/<SEARCH>.*?<\/SEARCH>/, '').trim();
+        
+        console.log('🔍 Search intent detected:', searchData);
+        
+        return { 
+          hasSearch: true, 
+          searchData: searchData, 
+          cleanResponse: cleanResponse 
+        };
+        
+      } catch (parseError) {
+        console.error('Failed to parse search JSON:', parseError.message);
+        console.error('Raw search content:', searchMatch[1]);
+        
+        return { 
+          hasSearch: false, 
+          searchData: null, 
+          cleanResponse: aiResponse,
+          error: 'Invalid JSON in search command' 
+        };
+      }
+    }
+    
+    // No search command found
+    return { 
+      hasSearch: false, 
+      searchData: null, 
+      cleanResponse: aiResponse 
+    };
+    
+  } catch (error) {
+    console.error('Error extracting search intent:', error.message);
+    return { 
+      hasSearch: false, 
+      searchData: null, 
+      cleanResponse: aiResponse,
+      error: error.message 
     };
   }
 }
