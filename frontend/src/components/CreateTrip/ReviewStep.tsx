@@ -41,22 +41,6 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ data, errors, onSubmit, loading
     }
   };
 
-  const getInterestLabel = (interest: string) => {
-    const interestMap: Record<string, string> = {
-      'culture': 'Culture & History',
-      'food': 'Food & Dining',
-      'nature': 'Nature & Outdoors',
-      'adventure': 'Adventure Sports',
-      'relaxation': 'Relaxation & Spa',
-      'nightlife': 'Nightlife & Entertainment',
-      'shopping': 'Shopping',
-      'art': 'Art & Museums',
-      'architecture': 'Architecture',
-      'photography': 'Photography',
-    };
-    return interestMap[interest] || interest;
-  };
-
   const getCategoryLabel = (category: string) => {
     const categoryMap: Record<string, string> = {
       'restaurants': 'Restaurants',
@@ -136,26 +120,6 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ data, errors, onSubmit, loading
               <span className="text-sm font-medium text-gray-700">Travel Pace:</span>
               <p className="text-gray-900">{getPaceLabel(data.pace)}</p>
             </div>
-          </div>
-        </div>
-
-        {/* Preferences */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <svg className="h-5 w-5 text-gray-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-            Interests
-          </h4>
-          <div className="flex flex-wrap gap-2">
-            {data.interests.map((interest) => (
-              <span
-                key={interest}
-                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-              >
-                {getInterestLabel(interest)}
-              </span>
-            ))}
           </div>
         </div>
       </div>

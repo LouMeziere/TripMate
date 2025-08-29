@@ -10,7 +10,7 @@ const TripParagraphTester: React.FC = () => {
     travelers: 2,
     budget: 'medium',
     pace: 'moderate',
-    interests: ['culture', 'food', 'art'],
+    interests: [],
     categories: ['restaurants', 'museums', 'attractions']
   });
 
@@ -26,15 +26,6 @@ const TripParagraphTester: React.FC = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleInterestToggle = (interest: string) => {
-    setFormData(prev => ({
-      ...prev,
-      interests: prev.interests.includes(interest)
-        ? prev.interests.filter(i => i !== interest)
-        : [...prev.interests, interest]
-    }));
-  };
-
   const handleCategoryToggle = (category: string) => {
     setFormData(prev => ({
       ...prev,
@@ -44,7 +35,6 @@ const TripParagraphTester: React.FC = () => {
     }));
   };
 
-  const interestOptions = ['culture', 'food', 'nature', 'adventure', 'relaxation', 'nightlife', 'shopping', 'art', 'architecture', 'photography'];
   const categoryOptions = ['restaurants', 'attractions', 'entertainment', 'shopping', 'outdoor', 'museums', 'sports', 'wellness', 'tours', 'transportation'];
 
   return (
@@ -122,25 +112,6 @@ const TripParagraphTester: React.FC = () => {
               <option value="moderate">Moderate</option>
               <option value="active">Active</option>
             </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Interests</label>
-            <div className="flex flex-wrap gap-2">
-              {interestOptions.map(interest => (
-                <button
-                  key={interest}
-                  onClick={() => handleInterestToggle(interest)}
-                  className={`px-3 py-1 text-sm rounded-full border ${
-                    formData.interests.includes(interest)
-                      ? 'bg-blue-100 border-blue-300 text-blue-800'
-                      : 'bg-gray-100 border-gray-300 text-gray-600'
-                  }`}
-                >
-                  {interest}
-                </button>
-              ))}
-            </div>
           </div>
 
           <div>

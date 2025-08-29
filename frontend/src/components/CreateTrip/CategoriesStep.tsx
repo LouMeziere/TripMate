@@ -116,19 +116,17 @@ const CategoriesStep: React.FC<CategoriesStepProps> = ({ data, errors, onChange 
       </div>
 
       {/* Selection Guidelines */}
-      <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-start">
-          <svg className="h-5 w-5 text-blue-400 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-5 w-5 text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <div>
-            <h3 className="text-sm font-medium text-blue-800">Selection Tips</h3>
-            <div className="mt-2 text-sm text-blue-700">
-              <ul className="list-disc list-inside space-y-1">
-                <li>Select at least one category to continue</li>
-                <li>We recommend choosing {getRecommendedCount()} categories for a balanced itinerary</li>
-                <li>You can always modify your selections later</li>
-              </ul>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-blue-800 mb-2">Selection Tips</h3>
+            <div className="text-sm text-blue-700 space-y-1">
+              <div>• Select at least one category to continue</div>
+              <div>• We recommend choosing {getRecommendedCount()} categories for a balanced itinerary</div>
+              <div>• You can always modify your selections later</div>
             </div>
           </div>
         </div>
@@ -221,24 +219,6 @@ const CategoriesStep: React.FC<CategoriesStepProps> = ({ data, errors, onChange 
         </div>
       )}
 
-      {/* Recommendations based on interests */}
-      {data.interests && data.interests.length > 0 && data.categories.length === 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-          <h4 className="text-sm font-medium text-yellow-800 mb-2">
-            💡 Suggested Categories Based on Your Interests:
-          </h4>
-          <div className="space-y-1 text-sm text-yellow-700">
-            {data.interests.includes('food') && <p>• Consider selecting "Restaurants" for dining experiences</p>}
-            {data.interests.includes('culture') && <p>• "Museums & Galleries" and "Cultural Experiences" might interest you</p>}
-            {data.interests.includes('nature') && <p>• "Outdoor Activities" and "Beaches & Water" are great options</p>}
-            {data.interests.includes('adventure') && <p>• "Sports & Recreation" could add excitement to your trip</p>}
-            {data.interests.includes('relaxation') && <p>• "Wellness & Spa" aligns with your relaxation preference</p>}
-            {data.interests.includes('nightlife') && <p>• "Nightlife" and "Entertainment" would suit your evening interests</p>}
-            {data.interests.includes('shopping') && <p>• "Shopping" is a perfect match for your interests</p>}
-            {data.interests.includes('art') && <p>• "Museums & Galleries" would be ideal for art enthusiasts</p>}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

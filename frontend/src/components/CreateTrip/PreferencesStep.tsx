@@ -20,26 +20,7 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ data, errors, onChang
     { value: 'active', label: 'Active', description: 'Packed schedule, see everything', icon: '🏃' },
   ];
 
-  const interestOptions = [
-    { value: 'culture', label: 'Culture & History', icon: '🏛️' },
-    { value: 'food', label: 'Food & Dining', icon: '🍽️' },
-    { value: 'nature', label: 'Nature & Outdoors', icon: '🌲' },
-    { value: 'adventure', label: 'Adventure Sports', icon: '🏄' },
-    { value: 'relaxation', label: 'Relaxation & Spa', icon: '🧘' },
-    { value: 'nightlife', label: 'Nightlife & Entertainment', icon: '🎭' },
-    { value: 'shopping', label: 'Shopping', icon: '🛍️' },
-    { value: 'art', label: 'Art & Museums', icon: '🎨' },
-    { value: 'architecture', label: 'Architecture', icon: '🏗️' },
-    { value: 'photography', label: 'Photography', icon: '📸' },
-  ];
 
-  const handleInterestToggle = (interest: string) => {
-    const currentInterests = data.interests || [];
-    const newInterests = currentInterests.includes(interest)
-      ? currentInterests.filter(i => i !== interest)
-      : [...currentInterests, interest];
-    onChange({ interests: newInterests });
-  };
 
   return (
     <div className="space-y-8">
@@ -109,59 +90,6 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ data, errors, onChang
           ))}
         </div>
       </div>
-
-      {/* Interests Selection */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          Interests *
-          <span className="text-sm font-normal text-gray-500 ml-2">
-            (Select all that apply)
-          </span>
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-          {interestOptions.map((option) => (
-            <div
-              key={option.value}
-              onClick={() => handleInterestToggle(option.value)}
-              className={`relative cursor-pointer rounded-lg border p-3 text-center hover:bg-gray-50 ${
-                data.interests.includes(option.value)
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-300'
-              }`}
-            >
-              <span className="text-2xl block mb-2">{option.icon}</span>
-              <span className="text-sm font-medium text-gray-900">{option.label}</span>
-              {data.interests.includes(option.value) && (
-                <div className="absolute top-2 right-2">
-                  <svg className="h-4 w-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-        {errors.interests && (
-          <p className="mt-2 text-sm text-red-600">{errors.interests}</p>
-        )}
-      </div>
-
-      {/* Selected Interests Display */}
-      {data.interests.length > 0 && (
-        <div className="bg-green-50 border border-green-200 rounded-md p-4">
-          <h4 className="text-sm font-medium text-green-800 mb-2">Selected Interests:</h4>
-          <div className="flex flex-wrap gap-2">
-            {data.interests.map((interest) => {
-              const option = interestOptions.find(opt => opt.value === interest);
-              return (
-                <span key={interest} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  {option?.icon} {option?.label}
-                </span>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
