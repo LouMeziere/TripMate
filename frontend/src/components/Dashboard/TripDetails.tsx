@@ -102,7 +102,10 @@ const TripDetails: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left side - Description & Address */}
           <div>
-            <h5 className="font-semibold text-gray-800 mb-3">Description & Location</h5>
+            <div className="flex items-center mb-3">
+              <span className="material-symbols-outlined text-xl text-blue-600 mr-2">info</span>
+              <h5 className="font-semibold text-gray-800">Details</h5>
+            </div>
             <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
               <div>
                 <h6 className="font-medium text-gray-700 mb-2">Description</h6>
@@ -122,7 +125,10 @@ const TripDetails: React.FC = () => {
 
           {/* Right side - Price & Contact */}
           <div>
-            <h5 className="font-semibold text-gray-800 mb-3">Contact & Price</h5>
+            <div className="flex items-center mb-3">
+              <span className="material-symbols-outlined text-xl text-green-600 mr-2">local_offer</span>
+              <h5 className="font-semibold text-gray-800">Pricing & Contact</h5>
+            </div>
             <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
               {activity.price !== undefined ? (
                 <div className="flex items-center p-2 bg-green-50 rounded-lg">
@@ -234,11 +240,17 @@ const TripDetails: React.FC = () => {
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900">{trip.title}</h1>
-            <p className="text-gray-600 flex items-center mt-1">
+            <h1 className="text-3xl font-bold text-gray-900 mb-[40px]">{trip.title}</h1>
+            <p className="text-gray-600 flex items-center mb-2">
               <span className="material-symbols-outlined text-base mr-1">location_on</span>
               {trip.destination}
             </p>
+            {/* Travel Dates section - inline, no box */}
+            <div className="flex items-center text-gray-600 text-sm mb-[40px]">
+              <span className="material-symbols-outlined text-base mr-1 text-blue-500">date_range</span>
+              <span className="font-medium mr-1">Travel Dates:</span>
+              <span className="text-gray-800">{formatDate(trip.startDate)} - {formatDate(trip.endDate)}</span>
+            </div>
           </div>
           <div className="flex space-x-3">
             <Link
@@ -256,31 +268,76 @@ const TripDetails: React.FC = () => {
         </div>
 
         {/* Trip Summary */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <p className="text-sm font-medium text-gray-600">Duration</p>
-              <p className="text-xl font-bold text-gray-900">{getDurationDays()} days</p>
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left column */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 bg-blue-50 rounded-lg px-4 py-3">
+                <span className="material-symbols-outlined text-2xl text-blue-500">calendar_month</span>
+                <div>
+                  <p className="text-xs text-blue-700 font-medium uppercase tracking-wide">Duration</p>
+                  <p className="text-xl font-bold text-gray-900">{getDurationDays()} days</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-green-50 rounded-lg px-4 py-3">
+                <span className="material-symbols-outlined text-2xl text-green-600">attach_money</span>
+                <div>
+                  <p className="text-xs text-green-700 font-medium uppercase tracking-wide">Budget</p>
+                  <p className="text-xl font-bold text-gray-900">{getBudgetLabel(trip.budget)}</p>
+                </div>
+              </div>
+              {/* Categories section, only in left column */}
+              {trip.categories && trip.categories.length > 0 && (
+                <div className="bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 mt-2">
+                  <div className="flex items-center gap-3 mb-1">
+                    <span className="material-symbols-outlined text-2xl text-blue-500">label</span>
+                    <p className="text-xs font-medium text-blue-700 uppercase tracking-wide">Categories</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {trip.categories.map((category, idx) => {
+                      const colors = [
+                        'bg-blue-100 text-blue-800',
+                        'bg-green-100 text-green-800',
+                        'bg-yellow-100 text-yellow-800',
+                        'bg-purple-100 text-purple-800',
+                        'bg-pink-100 text-pink-800',
+                        'bg-red-100 text-red-800',
+                        'bg-indigo-100 text-indigo-800',
+                        'bg-amber-100 text-amber-800',
+                      ];
+                      const color = colors[idx % colors.length];
+                      return (
+                        <span
+                          key={category}
+                          className={`px-3 py-2 rounded-full font-medium text-sm ${color}`}
+                        >
+                          {category}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="text-center">
-              <p className="text-sm font-medium text-gray-600">Travelers</p>
-              <p className="text-xl font-bold text-gray-900">{trip.travelers}</p>
+            {/* Right column */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 bg-purple-50 rounded-lg px-4 py-3">
+                <span className="material-symbols-outlined text-2xl text-purple-600">group</span>
+                <div>
+                  <p className="text-xs text-purple-700 font-medium uppercase tracking-wide">Travelers</p>
+                  <p className="text-xl font-bold text-gray-900">{trip.travelers}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-yellow-50 rounded-lg px-4 py-3">
+                <span className="material-symbols-outlined text-2xl text-yellow-600">bolt</span>
+                <div>
+                  <p className="text-xs text-yellow-700 font-medium uppercase tracking-wide">Pace</p>
+                  <p className="text-xl font-bold text-gray-900">{getPaceLabel(trip.pace)}</p>
+                </div>
+              </div>
             </div>
-            <div className="text-center">
-              <p className="text-sm font-medium text-gray-600">Budget</p>
-              <p className="text-xl font-bold text-gray-900">{getBudgetLabel(trip.budget)}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-medium text-gray-600">Pace</p>
-              <p className="text-xl font-bold text-gray-900">{getPaceLabel(trip.pace)}</p>
-            </div>
-          </div>
-          
-          <div className="mt-4 pt-4 border-t border-blue-200">
-            <p className="text-sm font-medium text-gray-600 mb-2">Dates</p>
-            <p className="text-gray-900">
-              {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
-            </p>
+            {/* Categories now only in left column */}
+            {/* Travel Dates moved above summary card */}
           </div>
         </div>
       </div>
@@ -289,42 +346,26 @@ const TripDetails: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column - Trip Details */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Categories */}
-          {trip.categories && trip.categories.length > 0 && (
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Categories</h2>
-              <div className="flex flex-wrap gap-2">
-                {trip.categories.map((category) => (
-                  <span
-                    key={category}
-                    className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md font-medium"
-                  >
-                    {category}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Categories moved to summary card above */}
 
           {/* Itinerary */}
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-6">Itinerary</h2>
             
             {trip.itinerary && trip.itinerary.length > 0 ? (
-              <div className="space-y-8">
+              <div className="space-y-6">
                 {trip.itinerary.map((dayPlan) => (
-                  <div key={dayPlan.day} className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+                  <div key={dayPlan.day} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
                     {/* Day Header */}
-                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-full w-12 h-12 flex items-center justify-center mr-4">
-                            <span className="text-white font-bold text-lg">{dayPlan.day}</span>
-                          </div>
-                          <div className="text-white">
-                            <h3 className="text-xl font-bold">Day {dayPlan.day}</h3>
-                            <p className="text-blue-100 text-sm">{getDateForDay(dayPlan.day)}</p>
-                          </div>
+                    {/* Day Header */}
+                    <div className="bg-blue-50 border-b border-blue-100 px-6 py-4">
+                      <div className="flex items-center">
+                        <div className="p-2 bg-blue-100 border border-blue-200 rounded-full mr-3">
+                          <span className="material-symbols-outlined text-2xl text-blue-700">today</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <h3 className="text-lg font-semibold text-gray-900">Day {dayPlan.day}</h3>
+                          <p className="text-blue-600 text-sm font-medium">{getDateForDay(dayPlan.day)}</p>
                         </div>
                       </div>
                     </div>
@@ -340,7 +381,7 @@ const TripDetails: React.FC = () => {
                             <div key={index} className="group relative">
                               {/* Timeline connector */}
                               {index < dayPlan.activities.length - 1 && (
-                                <div className="absolute left-6 top-16 w-0.5 h-8 bg-gradient-to-b from-blue-300 to-blue-200"></div>
+                                <div className="absolute left-6 top-16 w-0.5 h-8 bg-gray-300"></div>
                               )}
                               
                               <div className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
@@ -350,10 +391,10 @@ const TripDetails: React.FC = () => {
                                 >
                                   {/* Time indicator */}
                                   <div className="flex flex-col items-center mr-4 min-w-[4rem]">
-                                    <div className="bg-blue-600 text-white rounded-lg px-3 py-2 text-sm font-semibold">
+                                    <div className="bg-blue-50 text-blue-700 border border-blue-200 rounded-lg px-3 py-2 text-sm font-semibold">
                                       {activity.scheduledTime || '09:00'}
                                     </div>
-                                    <div className="text-xs text-gray-500 mt-2 font-medium bg-gray-100 px-2 py-1 rounded-full">
+                                    <div className="text-xs text-blue-600 mt-2 font-medium bg-blue-50 px-2 py-1 rounded-full border border-blue-200">
                                       {activity.duration || '2h'}
                                     </div>
                                   </div>
