@@ -91,7 +91,9 @@ const TripDetails: React.FC = () => {
       const message = `I want to change the activity "${activity.name}" in my itinerary. What would you suggest as alternatives?`;
       chatRef.current.sendMessage(message);
     }
-  };  const renderActivityDetails = (activity: any) => {
+  }; 
+
+  const renderActivityDetails = (activity: any) => {
     const activityId = `${activity.name}-${activity.address}`;
     const isExpanded = expandedActivities.has(activityId);
 
@@ -346,7 +348,6 @@ const TripDetails: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column - Trip Details */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Categories moved to summary card above */}
 
           {/* Itinerary */}
           <div>
@@ -356,7 +357,7 @@ const TripDetails: React.FC = () => {
               <div className="space-y-6">
                 {trip.itinerary.map((dayPlan) => (
                   <div key={dayPlan.day} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
-                    {/* Day Header */}
+                    
                     {/* Day Header */}
                     <div className="bg-blue-50 border-b border-blue-100 px-6 py-4">
                       <div className="flex items-center">
