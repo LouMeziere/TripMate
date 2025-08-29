@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const { Trip, Category } = require('../models');
 
-// Dummy trip data for development
+// Dummy trip data for development - KEEPING AS BACKUP
 const dummyTrips = [
   {
     id: '1',
@@ -130,92 +131,213 @@ const dummyTrips = [
 ];
 
 // GET /api/trips - Get all user trips
-router.get('/', (req, res) => {
-  res.json({
-    success: true,
-    data: dummyTrips,
-    message: 'Trips retrieved successfully'
-  });
+router.get('/', async (req, res) => {
+  try {
+    const trips = await Trip.findAll({
+      include: [{ model: Category, as: 'categories' }],
+      order: [['created_at', 'DESC']]
+    });
+    
+    // Transform categories for frontend compatibility
+    const transformedTrips = trips.map(trip => {
+      const tripData = trip.toJSON();
+      tripData.categories = tripData.categories.map(cat => cat.value);
+      return tripData;
+    });
+    
+    res.json({
+      success: true,
+      data: transformedTrips,
+      message: 'Trips retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Error fetching trips:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve trips',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/trips/categories - Get all active categories
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await Category.findAll({
+      where: { isActive: true },
+      order: [['sortOrder', 'ASC']]
+    });
+    
+    res.json({
+      success: true,
+      data: categories,
+      message: 'Categories retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve categories',
+      error: error.message
+    });
+  }
 });
 
 // GET /api/trips/:id - Get specific trip
-router.get('/:id', (req, res) => {
-  const trip = dummyTrips.find(t => t.id === req.params.id);
-  
-  if (!trip) {
-    return res.status(404).json({
+router.get('/:id', async (req, res) => {
+  try {
+    const trip = await Trip.findByPk(req.params.id, {
+      include: [{ model: Category, as: 'categories' }]
+    });
+    
+    if (!trip) {
+      return res.status(404).json({
+        success: false,
+        message: 'Trip not found'
+      });
+    }
+    
+    // Transform categories for frontend compatibility
+    const tripData = trip.toJSON();
+    tripData.categories = tripData.categories.map(cat => cat.value);
+    
+    res.json({
+      success: true,
+      data: tripData,
+      message: 'Trip retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Error fetching trip:', error);
+    res.status(500).json({
       success: false,
-      message: 'Trip not found'
+      message: 'Failed to retrieve trip',
+      error: error.message
     });
   }
-  
-  res.json({
-    success: true,
-    data: trip,
-    message: 'Trip retrieved successfully'
-  });
 });
 
 // POST /api/trips - Create new trip
-router.post('/', (req, res) => {
-  const newTrip = {
-    id: String(dummyTrips.length + 1),
-    ...req.body,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    status: 'planned'
-  };
-  
-  dummyTrips.push(newTrip);
-  
-  res.status(201).json({
-    success: true,
-    data: newTrip,
-    message: 'Trip created successfully'
-  });
+router.post('/', async (req, res) => {
+  try {
+    const { categories, ...tripData } = req.body;
+    
+    // Create trip
+    const trip = await Trip.create({
+      ...tripData,
+      status: tripData.status || 'draft'
+    });
+    
+    // Associate categories if provided
+    if (categories && categories.length > 0) {
+      const categoryInstances = await Category.findAll({
+        where: { value: categories }
+      });
+      await trip.addCategories(categoryInstances);
+    }
+    
+    // Return trip with categories
+    const tripWithCategories = await Trip.findByPk(trip.id, {
+      include: [{ model: Category, as: 'categories' }]
+    });
+    
+    // Transform categories for frontend compatibility
+    const responseData = tripWithCategories.toJSON();
+    responseData.categories = responseData.categories.map(cat => cat.value);
+    
+    res.status(201).json({
+      success: true,
+      data: responseData,
+      message: 'Trip created successfully'
+    });
+  } catch (error) {
+    console.error('Error creating trip:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create trip',
+      error: error.message
+    });
+  }
 });
 
 // PUT /api/trips/:id - Update trip
-router.put('/:id', (req, res) => {
-  const tripIndex = dummyTrips.findIndex(t => t.id === req.params.id);
-  
-  if (tripIndex === -1) {
-    return res.status(404).json({
+router.put('/:id', async (req, res) => {
+  try {
+    const { categories, ...tripData } = req.body;
+    
+    const trip = await Trip.findByPk(req.params.id);
+    
+    if (!trip) {
+      return res.status(404).json({
+        success: false,
+        message: 'Trip not found'
+      });
+    }
+    
+    // Update trip data
+    await trip.update(tripData);
+    
+    // Update category associations if provided
+    if (categories !== undefined) {
+      if (categories.length > 0) {
+        const categoryInstances = await Category.findAll({
+          where: { value: categories }
+        });
+        await trip.setCategories(categoryInstances);
+      } else {
+        await trip.setCategories([]);
+      }
+    }
+    
+    // Return updated trip with categories
+    const updatedTrip = await Trip.findByPk(trip.id, {
+      include: [{ model: Category, as: 'categories' }]
+    });
+    
+    // Transform categories for frontend compatibility
+    const responseData = updatedTrip.toJSON();
+    responseData.categories = responseData.categories.map(cat => cat.value);
+    
+    res.json({
+      success: true,
+      data: responseData,
+      message: 'Trip updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating trip:', error);
+    res.status(500).json({
       success: false,
-      message: 'Trip not found'
+      message: 'Failed to update trip',
+      error: error.message
     });
   }
-  
-  dummyTrips[tripIndex] = {
-    ...dummyTrips[tripIndex],
-    ...req.body,
-    updatedAt: new Date().toISOString()
-  };
-  
-  res.json({
-    success: true,
-    data: dummyTrips[tripIndex],
-    message: 'Trip updated successfully'
-  });
 });
 
 // DELETE /api/trips/:id - Delete trip
-router.delete('/:id', (req, res) => {
-  const tripIndex = dummyTrips.findIndex(t => t.id === req.params.id);
-  
-  if (tripIndex === -1) {
-    return res.status(404).json({
+router.delete('/:id', async (req, res) => {
+  try {
+    const trip = await Trip.findByPk(req.params.id);
+    
+    if (!trip) {
+      return res.status(404).json({
+        success: false,
+        message: 'Trip not found'
+      });
+    }
+    
+    await trip.destroy();
+    
+    res.json({
+      success: true,
+      message: 'Trip deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting trip:', error);
+    res.status(500).json({
       success: false,
-      message: 'Trip not found'
+      message: 'Failed to delete trip',
+      error: error.message
     });
   }
-  
-  dummyTrips.splice(tripIndex, 1);
-  
-  res.json({
-    success: true,
-    message: 'Trip deleted successfully'
-  });
 });
 
 module.exports = router;
