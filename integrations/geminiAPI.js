@@ -116,6 +116,35 @@ async function processChatMessage(message, tripContext = null, chatHistory = [])
       }
       
       contextPrompt += `. Use this context to provide relevant travel advice.`;
+      
+      // Add trip-specific search capability instructions
+      contextPrompt += `\n\nSEARCH CAPABILITY: When the user asks about finding, searching, or discovering places, activities, restaurants, or venues, you can trigger a search by including this format in your response:
+<SEARCH>{"query":"restaurants","location":"${tripContext.destination}","limit":5}</SEARCH>
+
+Always use the trip destination "${tripContext.destination}" as the location unless the user specifies a different location.
+
+Examples:
+- "Find Italian restaurants" → <SEARCH>{"query":"Italian restaurants","location":"${tripContext.destination}","limit":5}</SEARCH>I'll help you find great Italian restaurants in ${tripContext.destination}!
+- "What museums are nearby?" → <SEARCH>{"query":"museums","location":"${tripContext.destination}","limit":5}</SEARCH>Let me show you the top museums in ${tripContext.destination}!
+- "Show me cafes with WiFi" → <SEARCH>{"query":"cafes wifi","location":"${tripContext.destination}","limit":5}</SEARCH>I'll find cafes with good WiFi for you in ${tripContext.destination}!
+- "Find parks near the Louvre" → <SEARCH>{"query":"parks","location":"Louvre, ${tripContext.destination}","limit":5}</SEARCH>I'll search for parks near the Louvre!
+
+IMPORTANT: 
+- Always include the <SEARCH> tag when the user wants to find places
+- Use specific search terms in the query field
+- Set limit to 5 for good variety
+- Then provide your normal helpful conversational response
+- Only search when the user is clearly asking to find or discover places`;
+    } else {
+      // Add general search capability instructions for non-trip contexts
+      contextPrompt += `\n\nSEARCH CAPABILITY: When the user asks about finding, searching, or discovering places in a specific location, you can trigger a search by including this format in your response:
+<SEARCH>{"query":"restaurants","location":"Paris","limit":5}</SEARCH>
+
+Examples:
+- "Find restaurants in Paris" → <SEARCH>{"query":"restaurants","location":"Paris","limit":5}</SEARCH>I'll help you find great restaurants in Paris!
+- "What museums are in Rome?" → <SEARCH>{"query":"museums","location":"Rome","limit":5}</SEARCH>Let me show you the top museums in Rome!
+
+IMPORTANT: Only use search when the user clearly specifies a location and wants to find places.`;
     }
     
     // Add recent chat history for context (last 5 messages)
@@ -131,9 +160,12 @@ async function processChatMessage(message, tripContext = null, chatHistory = [])
     if (tripContext && message.toLowerCase().includes('change an activity')) {
       contextPrompt += `\n\nThe user wants to modify their itinerary. Look at their current activities above and ask which specific one they want to change. Mention 2-3 actual activities from their itinerary as examples. Keep your response under 3 sentences.`;
     }
-    
-    // Handle when user mentions a specific activity name (like "Louvre", "museum", etc.)
-    if (tripContext && tripContext.itinerary && (message.toLowerCase().includes('louvre') || message.toLowerCase().includes('museum') || message.toLowerCase().includes('restaurant') || message.toLowerCase().includes('tour'))) {
+    // Handle search requests (prioritize over replacement suggestions)
+    else if (message.toLowerCase().includes('find') || message.toLowerCase().includes('search') || message.toLowerCase().includes('show me') || message.toLowerCase().includes('what') && (message.toLowerCase().includes('restaurants') || message.toLowerCase().includes('museums') || message.toLowerCase().includes('cafes') || message.toLowerCase().includes('bars') || message.toLowerCase().includes('shops'))) {
+      contextPrompt += `\n\nThe user is asking to find places. Use the SEARCH capability to help them discover new options.`;
+    }
+    // Handle when user mentions a specific activity name (only if not searching)
+    else if (tripContext && tripContext.itinerary && (message.toLowerCase().includes('louvre') || message.toLowerCase().includes('museum') || message.toLowerCase().includes('restaurant') || message.toLowerCase().includes('tour'))) {
       contextPrompt += `\n\nThe user is mentioning a specific activity. Look at their itinerary to find the activity they're referring to and suggest replacements that work for the same time slot and duration. Provide 2-3 specific alternative suggestions.`;
     }
     
