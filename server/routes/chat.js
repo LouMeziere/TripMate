@@ -1,6 +1,58 @@
 const express = require('express');
 const router = express.Router();
 const { processChatMessage } = require('../../integrations/geminiAPI');
+const { searchPlaces } = require('../../integrations/foursquareAPI');
+
+// Execute search using Foursquare API based on search intent
+async function executeSearch(searchIntent) {
+  try {
+    console.log('🔍 Executing search:', searchIntent);
+    
+    // Prepare Foursquare API parameters
+    const searchParams = {
+      query: searchIntent.query,
+      near: searchIntent.location,
+      limit: searchIntent.limit || 5
+    };
+    
+    // Call Foursquare API
+    const places = await searchPlaces(searchParams);
+    
+    console.log(`✅ Found ${places.length} places for query: ${searchIntent.query}`);
+    
+    // Format results for frontend consumption
+    const formattedResults = places.map(place => ({
+      id: place.fsq_id,
+      name: place.name,
+      address: place.location?.formatted_address || 'Address not available',
+      category: place.categories?.[0]?.name || 'General',
+      distance: place.distance ? `${Math.round(place.distance)}m` : null,
+      rating: place.rating || null,
+      price: place.price || null,
+      website: place.website || null,
+      hours: place.hours || null
+    }));
+    
+    return {
+      success: true,
+      results: formattedResults,
+      searchQuery: searchIntent.query,
+      searchLocation: searchIntent.location,
+      resultCount: formattedResults.length
+    };
+    
+  } catch (error) {
+    console.error('❌ Search execution failed:', error.message);
+    return {
+      success: false,
+      error: error.message,
+      results: [],
+      searchQuery: searchIntent.query,
+      searchLocation: searchIntent.location,
+      resultCount: 0
+    };
+  }
+}
 
 // In-memory chat history storage (in production, use a database)
 let chatHistory = {};
@@ -47,8 +99,17 @@ router.post('/', async (req, res) => {
       aiResponseData = {
         success: true,
         response: "I'm here to help with your trip planning! What would you like to know?",
-        suggestions: ['Tell me more', 'Add to trip', 'Show alternatives']
+        suggestions: ['Tell me more', 'Add to trip', 'Show alternatives'],
+        searchIntent: null,
+        searchError: null
       };
+    }
+    
+    // Execute search if AI detected search intent
+    let searchResults = null;
+    if (aiResponseData.searchIntent) {
+      console.log('🔍 Search intent detected, executing search...');
+      searchResults = await executeSearch(aiResponseData.searchIntent);
     }
     
     // Store AI response
@@ -57,7 +118,8 @@ router.post('/', async (req, res) => {
       type: 'ai',
       content: aiResponseData.response,
       timestamp: new Date().toISOString(),
-      suggestions: aiResponseData.suggestions || []
+      suggestions: aiResponseData.suggestions || [],
+      searchResults: searchResults
     };
     
     if (tripId) {
@@ -69,7 +131,8 @@ router.post('/', async (req, res) => {
       data: {
         userMessage,
         aiMessage,
-        suggestions: aiMessage.suggestions
+        suggestions: aiMessage.suggestions,
+        searchResults: searchResults
       },
       message: 'Chat message processed successfully'
     });
@@ -108,6 +171,15 @@ router.delete('/:tripId', (req, res) => {
   res.json({
     success: true,
     message: 'Chat history cleared successfully'
+  });
+});
+
+// GET /api/chat/health-check - Server health check
+router.get('/health-check', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Chat API is running',
+    timestamp: new Date().toISOString()
   });
 });
 
