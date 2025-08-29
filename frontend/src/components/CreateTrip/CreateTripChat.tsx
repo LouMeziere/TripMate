@@ -253,11 +253,15 @@ const CreateTripChat: React.FC<CreateTripChatProps> = ({ tripId, currentStep, fo
     <div className="h-full flex flex-col">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex flex-col">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Trip Planning Assistant</h3>
-          <p className="text-sm text-gray-500">
-            Add additional preferences or ask questions about your trip
-          </p>
+        <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">AI Assistant</h3>
+          </div>
         </div>
         
         {/* Collapsible Trip Request Section */}
@@ -268,7 +272,6 @@ const CreateTripChat: React.FC<CreateTripChatProps> = ({ tripId, currentStep, fo
           >
             <div className="flex items-center">
               <span className="text-sm font-medium text-gray-700">Current Trip Request</span>
-              <span className="ml-2 text-xs text-gray-500">(Read-only)</span>
             </div>
             <svg 
               className={`w-4 h-4 text-gray-500 transform transition-transform ${isRequestExpanded ? 'rotate-180' : ''}`}
@@ -315,25 +318,45 @@ const CreateTripChat: React.FC<CreateTripChatProps> = ({ tripId, currentStep, fo
             </div>
           ) : messages.length === 0 ? (
             <div className="flex-1 flex items-center justify-center p-8">
-              <div className="text-center max-w-md">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg 
-                    className="w-8 h-8 text-purple-500" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" 
-                    />
-                  </svg>
+              <div className="max-w-sm w-full">
+                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                  <div className="text-center mb-6">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900">Two ways to interact</h4>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {/* Blue section for AI recommendations */}
+                    <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                      <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="font-medium text-blue-900">Ask questions</div>
+                        <div className="text-sm text-blue-700">Get AI recommendations</div>
+                      </div>
+                    </div>
+
+                    {/* Gray section for direct additions */}
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="w-8 h-8 bg-gray-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">State preferences</div>
+                        <div className="text-sm text-gray-600">Add to your trip directly</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  AI Travel Assistant
-                </h3>
               </div>
             </div>
           ) : (
@@ -389,14 +412,14 @@ const CreateTripChat: React.FC<CreateTripChatProps> = ({ tripId, currentStep, fo
           </div>
         )}
         
-        {/* Custom Chat Input with Two Buttons */}
+        {/* Chat Input */}
         <div className="border-t border-gray-200 p-4 bg-gray-50">
           <div className="space-y-3">
             <div>
               <textarea
                 id="chatInput"
                 rows={3}
-                placeholder="Type your message here... Use 'Chat' to ask the AI for recommendations, or 'Add to Request' to add directly to your trip requirements."
+                placeholder="Try asking: 'What are the best places to visit?' (use Chat) or stating: 'I love museums' (use Add to Request)"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
                 disabled={isLoading}
                 onKeyPress={(e) => {
@@ -409,6 +432,7 @@ const CreateTripChat: React.FC<CreateTripChatProps> = ({ tripId, currentStep, fo
                 }}
               />
             </div>
+            
             <div className="flex space-x-2">
               <button
                 onClick={() => {
@@ -426,6 +450,7 @@ const CreateTripChat: React.FC<CreateTripChatProps> = ({ tripId, currentStep, fo
                 </svg>
                 <span>Chat with AI</span>
               </button>
+              
               <button
                 onClick={() => {
                   const textarea = document.getElementById('chatInput') as HTMLTextAreaElement;

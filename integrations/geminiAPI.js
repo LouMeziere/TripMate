@@ -98,6 +98,24 @@ async function processChatMessage(message, tripContext = null, chatHistory = [])
       if (tripContext.categories && tripContext.categories.length > 0) {
         contextPrompt += ` interested in: ${tripContext.categories.join(', ')}`;
       }
+      
+      // Include detailed itinerary if available
+      if (tripContext.itinerary && tripContext.itinerary.length > 0) {
+        contextPrompt += `\n\nCurrent itinerary:`;
+        tripContext.itinerary.forEach(day => {
+          contextPrompt += `\nDay ${day.day}:`;
+          day.activities.forEach(activity => {
+            const time = activity.scheduledTime || 'morning';
+            const duration = activity.duration || '2h';
+            contextPrompt += `\n- ${time} (${duration}): ${activity.name} - ${activity.category}`;
+            if (activity.address) {
+              contextPrompt += ` at ${activity.address}`;
+            }
+          });
+        });
+      }
+      
+      contextPrompt += `. Use this context to provide relevant travel advice.`;
     }
     
     // Add recent chat history for context (last 5 messages)
@@ -107,6 +125,16 @@ async function processChatMessage(message, tripContext = null, chatHistory = [])
       recentHistory.forEach(msg => {
         contextPrompt += `\n${msg.type}: ${msg.content}`;
       });
+    }
+    
+    // Handle specific conversation flows
+    if (tripContext && message.toLowerCase().includes('change an activity')) {
+      contextPrompt += `\n\nThe user wants to modify their itinerary. Look at their current activities above and ask which specific one they want to change. Mention 2-3 actual activities from their itinerary as examples. Keep your response under 3 sentences.`;
+    }
+    
+    // Handle when user mentions a specific activity name (like "Louvre", "museum", etc.)
+    if (tripContext && tripContext.itinerary && (message.toLowerCase().includes('louvre') || message.toLowerCase().includes('museum') || message.toLowerCase().includes('restaurant') || message.toLowerCase().includes('tour'))) {
+      contextPrompt += `\n\nThe user is mentioning a specific activity. Look at their itinerary to find the activity they're referring to and suggest replacements that work for the same time slot and duration. Provide 2-3 specific alternative suggestions.`;
     }
     
     contextPrompt += `\n\nUser question: ${message}\n\nRespond helpfully and conversationally in plain text only. Do not use any markdown formatting including **, *, _, -, •, or any other special characters for formatting. Use simple line breaks and regular text only. Keep responses under 200 words.`;
@@ -155,18 +183,24 @@ async function processChatMessage(message, tripContext = null, chatHistory = [])
 function generateSuggestions(message, tripContext) {
   const suggestions = [];
   
-  if (message.toLowerCase().includes('food') || message.toLowerCase().includes('restaurant')) {
-    suggestions.push('Find more restaurants', 'Dietary restrictions', 'Local specialties');
-  } else if (message.toLowerCase().includes('activity') || message.toLowerCase().includes('do')) {
-    suggestions.push('Outdoor activities', 'Cultural sites', 'Free attractions');
-  } else if (message.toLowerCase().includes('budget') || message.toLowerCase().includes('cost')) {
-    suggestions.push('Save money tips', 'Free activities', 'Budget breakdown');
+  if (!tripContext) {
+    // No trip selected - general travel planning suggestions
+    suggestions.push('Plan a trip', 'Travel tips', 'Budget advice');
   } else {
-    // Default suggestions
-    suggestions.push('Tell me more', 'Add to itinerary', 'Show alternatives');
+    // Trip selected - trip management suggestions
+    suggestions.push('Change an activity', 'Local recommendations', 'Transportation help');
+    
+    // Add contextual suggestions based on message content
+    if (message.toLowerCase().includes('activity')) {
+      suggestions.push('See similar activities', 'Check opening hours');
+    } else if (message.toLowerCase().includes('restaurant') || message.toLowerCase().includes('food')) {
+      suggestions.push('More restaurants', 'Dietary options');
+    } else if (message.toLowerCase().includes('budget') || message.toLowerCase().includes('cost')) {
+      suggestions.push('Save money tips', 'Free activities');
+    }
   }
   
-  return suggestions;
+  return suggestions.slice(0, 3); // Limit to 3 suggestions
 }
 
 module.exports = { processUserInput, processChatMessage };

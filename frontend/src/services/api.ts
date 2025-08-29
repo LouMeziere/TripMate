@@ -46,6 +46,10 @@ export interface Trip {
       address: string;
       rating: number;
       description?: string;
+      scheduledTime?: string;
+      tel?: string;
+      email?: string;
+      price?: number;
     }[];
   }[];
 }
@@ -99,7 +103,12 @@ export const tripAPI = {
 export const chatAPI = {
   // Send chat message with trip context
   sendMessage: async (message: string, tripId?: string, tripContext?: any, useRealAI = true): Promise<ApiResponse<any>> => {
-    const response = await api.post('/chat', { message, tripId, tripContext, useRealAI });
+    const response = await api.post('/chat', { 
+      message, 
+      tripId, 
+      tripContext, 
+      useRealAI 
+    });
     return response.data;
   },
 

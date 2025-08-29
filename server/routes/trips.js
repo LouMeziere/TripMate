@@ -24,15 +24,23 @@ const dummyTrips = [
             name: 'Eiffel Tower',
             category: 'landmark',
             duration: '2 hours',
-            address: 'Champ de Mars, Paris',
-            rating: 4.5
+            address: 'Champ de Mars, 5 Avenue Anatole France, 75007 Paris',
+            rating: 4.5,
+            description: 'Iconic iron lattice tower and symbol of Paris',
+            tel: '+33 8 92 70 12 39',
+            price: 3,
+            scheduledTime: '09:00'
           },
           {
             name: 'Seine River Cruise',
             category: 'activity',
             duration: '1.5 hours',
-            address: 'Port de la Bourdonnais, Paris',
-            rating: 4.3
+            address: 'Port de la Bourdonnais, 75007 Paris',
+            rating: 4.3,
+            description: 'Scenic boat cruise along the Seine River with commentary',
+            tel: '+33 1 42 25 96 10',
+            price: 2,
+            scheduledTime: '14:30'
           }
         ]
       },
@@ -43,15 +51,24 @@ const dummyTrips = [
             name: 'Louvre Museum',
             category: 'culture',
             duration: '3 hours',
-            address: 'Rue de Rivoli, Paris',
-            rating: 4.6
+            address: 'Rue de Rivoli, 75001 Paris',
+            rating: 4.6,
+            description: 'World\'s largest art museum featuring the Mona Lisa and Venus de Milo',
+            tel: '+33 1 40 20 50 50',
+            email: 'info@louvre.fr',
+            price: 2,
+            scheduledTime: '10:00'
           },
           {
             name: 'Le Comptoir du Relais',
             category: 'food',
             duration: '2 hours',
-            address: '9 Carrefour de l\'Odéon, Paris',
-            rating: 4.4
+            address: '9 Carrefour de l\'Odéon, 75006 Paris',
+            rating: 4.4,
+            description: 'Traditional French bistro with seasonal menu and wine selection',
+            tel: '+33 1 44 27 07 97',
+            price: 3,
+            scheduledTime: '19:30'
           }
         ]
       }
@@ -79,14 +96,21 @@ const dummyTrips = [
             category: 'culture',
             duration: '2 hours',
             address: 'Asakusa, Tokyo',
-            rating: 4.4
+            rating: 4.4,
+            description: 'Ancient Buddhist temple with traditional architecture',
+            price: 1,
+            scheduledTime: '09:00'
           },
           {
             name: 'Tsukiji Outer Market',
             category: 'food',
             duration: '3 hours',
             address: 'Tsukiji, Tokyo',
-            rating: 4.5
+            rating: 4.5,
+            description: 'Famous fish market with fresh sushi and street food',
+            tel: '+81 3-3542-1111',
+            price: 2,
+            scheduledTime: '11:30'
           }
         ]
       }

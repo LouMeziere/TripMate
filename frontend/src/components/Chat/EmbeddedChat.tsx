@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { chatAPI } from '../../services/api';
 import ChatContainer from './ChatContainer';
 import ChatInput from './ChatInput';
@@ -6,15 +6,21 @@ import { Message } from './ChatMessage';
 
 interface EmbeddedChatProps {
   tripId: string;
+  tripTitle: string;
   tripContext?: any;
   className?: string;
 }
 
-const EmbeddedChat: React.FC<EmbeddedChatProps> = ({
+export interface EmbeddedChatRef {
+  sendMessage: (message: string) => void;
+}
+
+const EmbeddedChat = forwardRef<EmbeddedChatRef, EmbeddedChatProps>(({
   tripId,
+  tripTitle,
   tripContext,
   className = ""
-}) => {
+}, ref) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -86,12 +92,22 @@ const EmbeddedChat: React.FC<EmbeddedChatProps> = ({
     handleSendMessage(suggestion);
   };
 
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    sendMessage: handleSendMessage
+  }));
+
+  // Generate initial suggestions for trip context
+  const getInitialSuggestions = () => {
+    return ['Change an activity', 'Local recommendations', 'Transportation help'];
+  };
+
   if (isInitialLoading) {
     return (
       <div className={`bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col ${className}`}>
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="text-center">
-            <div className="animate-spin w-6 h-6 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+            <div className="animate-spin w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
             <p className="text-sm text-gray-600">Loading chat...</p>
           </div>
         </div>
@@ -102,11 +118,25 @@ const EmbeddedChat: React.FC<EmbeddedChatProps> = ({
   return (
     <div className={`bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col ${className}`}>
       {/* Chat Header */}
-      <div className="border-b border-gray-200 px-4 py-3 rounded-t-lg bg-gray-50">
+      <div className="border-b border-gray-200 px-4 py-4 rounded-t-lg bg-gradient-to-r from-blue-50 to-indigo-50">
         <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">AI Assistant</h3>
-            <p className="text-xs text-gray-500">Ask me anything about this trip</p>
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">AI Assistant</h3>
+              
+              {/* Selected Trip Indicator */}
+              <div className="flex items-center mt-1">
+                <span className="text-xs text-gray-600">Trip:</span>
+                <span className="ml-1 px-2 py-0.5 bg-white/70 text-blue-800 text-xs rounded font-medium border border-blue-200">
+                  {tripTitle}
+                </span>
+              </div>
+            </div>
           </div>
           
           {messages.length > 0 && (
@@ -118,7 +148,7 @@ const EmbeddedChat: React.FC<EmbeddedChatProps> = ({
                   });
                 }
               }}
-              className="text-xs text-gray-400 hover:text-red-600 transition-colors"
+              className="text-xs text-gray-500 hover:text-red-600 transition-colors bg-white/50 px-2 py-1 rounded border border-gray-200"
             >
               Clear
             </button>
@@ -143,7 +173,8 @@ const EmbeddedChat: React.FC<EmbeddedChatProps> = ({
         messages={messages}
         isLoading={isLoading}
         onSuggestionClick={handleSuggestionClick}
-        emptyStateMessage="Ask me about modifying your trip, adding activities, or any travel questions!"
+        initialSuggestions={getInitialSuggestions()}
+        emptyStateMessage="Ask me about modifying your trip or any travel questions!"
       />
 
       {/* Chat Input */}
@@ -156,6 +187,8 @@ const EmbeddedChat: React.FC<EmbeddedChatProps> = ({
       </div>
     </div>
   );
-};
+});
+
+EmbeddedChat.displayName = 'EmbeddedChat';
 
 export default EmbeddedChat;

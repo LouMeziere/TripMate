@@ -57,7 +57,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled}
-            className="w-full resize-none border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent max-h-[120px] min-h-[44px] disabled:bg-gray-50 disabled:text-gray-500"
+            className="w-full resize-none border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent max-h-[120px] min-h-[44px] disabled:bg-gray-50 disabled:text-gray-500"
             style={{ height: 'auto' }}
             maxLength={1000}
           />
@@ -74,7 +74,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           className={`flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-lg transition-colors duration-200 ${
             isButtonDisabled
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-purple-500 hover:bg-purple-600 text-white'
+              : 'bg-blue-500 hover:bg-blue-600 text-white'
           }`}
         >
           {isLoading ? (
