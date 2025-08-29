@@ -20,6 +20,18 @@ api.interceptors.response.use(
   },
   (error) => {
     console.error(`❌ API Error: ${error.response?.status} ${error.config?.url}`, error.response?.data);
+    
+    // Handle network errors
+    if (!error.response) {
+      error.message = 'Network Error: Please check your internet connection';
+    } else if (error.response.status >= 500) {
+      error.message = 'Server Error: Please try again later';
+    } else if (error.response.status === 404) {
+      error.message = 'Resource not found';
+    } else if (error.response.status === 401) {
+      error.message = 'Authentication required';
+    }
+    
     return Promise.reject(error);
   }
 );
@@ -103,25 +115,40 @@ export const tripAPI = {
 export const chatAPI = {
   // Send chat message with trip context
   sendMessage: async (message: string, tripId?: string, tripContext?: any, useRealAI = true): Promise<ApiResponse<any>> => {
-    const response = await api.post('/chat', { 
-      message, 
-      tripId, 
-      tripContext, 
-      useRealAI 
-    });
-    return response.data;
+    try {
+      const response = await api.post('/chat', { 
+        message, 
+        tripId, 
+        tripContext, 
+        useRealAI 
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Chat API sendMessage error:', error);
+      throw error;
+    }
   },
 
   // Get chat history
   getChatHistory: async (tripId: string): Promise<ApiResponse<any[]>> => {
-    const response = await api.get(`/chat/${tripId}`);
-    return response.data;
+    try {
+      const response = await api.get(`/chat/${tripId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Chat API getChatHistory error:', error);
+      throw error;
+    }
   },
 
   // Clear chat history
   clearChatHistory: async (tripId: string): Promise<ApiResponse<null>> => {
-    const response = await api.delete(`/chat/${tripId}`);
-    return response.data;
+    try {
+      const response = await api.delete(`/chat/${tripId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Chat API clearChatHistory error:', error);
+      throw error;
+    }
   }
 };
 

@@ -47,9 +47,18 @@ const Chat: React.FC = () => {
         }
         
         // Load chat history
-        const response = await chatAPI.getChatHistory(tripId);
-        if (response.success) {
-          setMessages(response.data);
+        try {
+          const response = await chatAPI.getChatHistory(tripId);
+          if (response?.success && Array.isArray(response.data)) {
+            setMessages(response.data);
+          } else {
+            console.warn('Invalid chat history response:', response);
+            setMessages([]); // fallback to empty array
+          }
+        } catch (historyError) {
+          console.error('Failed to load chat history:', historyError);
+          // Don't set error state for history loading failure, just use empty messages
+          setMessages([]);
         }
       } catch (error) {
         console.error('Failed to load chat data:', error);
@@ -82,21 +91,34 @@ const Chat: React.FC = () => {
       // Send message to API with trip context
       const response = await chatAPI.sendMessage(messageContent, tripId, tripContext, true);
       
-      if (response.success && response.data.aiMessage) {
+      if (response?.success && response?.data?.aiMessage) {
         // Create AI message with search results if they exist
         const aiMessage: Message = {
           ...response.data.aiMessage,
-          searchResults: response.data.searchResults
+          searchResults: response.data.searchResults || null
         };
         
         // Add AI response to chat
         setMessages(prev => [...prev, aiMessage]);
       } else {
+        console.error('Invalid response structure:', response);
         throw new Error('Invalid response from server');
       }
     } catch (error) {
       console.error('Failed to send message:', error);
-      setError('Failed to send message. Please try again.');
+      
+      // More specific error handling
+      let errorMessage = 'Failed to send message. Please try again.';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Network Error') || error.message.includes('timeout')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.message.includes('500')) {
+          errorMessage = 'Server error. Please try again in a moment.';
+        }
+      }
+      
+      setError(errorMessage);
       
       // Remove the user message since sending failed
       setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
@@ -111,18 +133,36 @@ const Chat: React.FC = () => {
 
   // Handle adding a place to the trip
   const handleAddToTrip = (place: SearchResult) => {
-    console.log('Adding place to trip:', place);
-    // TODO: Implement trip addition functionality
-    // For now, just show a notification or update state
-    alert(`Added "${place.name}" to your trip! (Feature coming soon)`);
+    try {
+      console.log('Adding place to trip:', place);
+      // TODO: Implement trip addition functionality
+      // For now, just show a notification or update state
+      if (place?.name) {
+        alert(`Added "${place.name}" to your trip! (Feature coming soon)`);
+      } else {
+        alert('Added place to your trip! (Feature coming soon)');
+      }
+    } catch (error) {
+      console.error('Error adding place to trip:', error);
+      alert('Error adding place to trip. Please try again.');
+    }
   };
 
   // Handle getting more details about a place
   const handleGetDetails = (place: SearchResult) => {
-    console.log('Getting details for place:', place);
-    // TODO: Implement details view/modal
-    // For now, just show basic info
-    alert(`Details for ${place.name}:\n${place.address}\nCategory: ${place.category}`);
+    try {
+      console.log('Getting details for place:', place);
+      // TODO: Implement details view/modal
+      // For now, just show basic info
+      if (place?.name && place?.address && place?.category) {
+        alert(`Details for ${place.name}:\n${place.address}\nCategory: ${place.category}`);
+      } else {
+        alert('Place details are not fully available.');
+      }
+    } catch (error) {
+      console.error('Error getting place details:', error);
+      alert('Error getting place details. Please try again.');
+    }
   };
 
   // Generate initial suggestions based on trip context

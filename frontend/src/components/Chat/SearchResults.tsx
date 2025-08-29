@@ -12,7 +12,12 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   onAddToTrip, 
   onGetDetails 
 }) => {
-  if (!searchResults.success || searchResults.results.length === 0) {
+  // Defensive checks
+  if (!searchResults) {
+    return null;
+  }
+
+  if (!searchResults.success || !searchResults.results || searchResults.results.length === 0) {
     return (
       <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
         <div className="flex items-center">
@@ -44,28 +49,40 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 
       {/* Places Grid */}
       <div className="space-y-2">
-        {searchResults.results.map((place, index) => (
-          <div key={place.id || index} className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-            {/* Place Header */}
-            <div className="flex justify-between items-start mb-2">
-              <div className="flex-1 min-w-0">
-                <h4 className="text-base font-medium text-gray-900 truncate text-left">{place.name}</h4>
-                <p className="text-sm text-gray-600 mt-1 text-left">{place.category}</p>
+        {searchResults.results.map((place, index) => {
+          // Ensure place has required data
+          if (!place || typeof place !== 'object') {
+            return null;
+          }
+          
+          return (
+            <div key={place.id || index} className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
+              {/* Place Header */}
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-base font-medium text-gray-900 truncate text-left">
+                    {place.name || 'Unknown Place'}
+                  </h4>
+                  <p className="text-sm text-gray-600 mt-1 text-left">
+                    {place.category || 'General'}
+                  </p>
+                </div>
+                {place.distance && (
+                  <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full flex-shrink-0">
+                    {place.distance}
+                  </span>
+                )}
               </div>
-              {place.distance && (
-                <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full flex-shrink-0">
-                  {place.distance}
-                </span>
-              )}
-            </div>
 
-            {/* Address */}
-            <div className="flex items-start mb-2">
-              <svg className="w-4 h-4 text-gray-400 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-              </svg>
-              <p className="text-sm text-gray-600 flex-1 text-left">{place.address}</p>
-            </div>
+              {/* Address */}
+              <div className="flex items-start mb-2">
+                <svg className="w-4 h-4 text-gray-400 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                </svg>
+                <p className="text-sm text-gray-600 flex-1 text-left">
+                  {place.address || 'Address not available'}
+                </p>
+              </div>
 
             {/* Rating and Price */}
             <div className="flex items-center gap-4 mb-3">
@@ -109,32 +126,33 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             )}
 
             {/* Action Buttons */}
-            <div className="flex gap-2 mt-2">
-              {onGetDetails && (
-                <button
-                  onClick={() => onGetDetails(place)}
-                  className="flex-1 px-2 py-1.5 bg-gray-100 text-gray-700 text-xs rounded-md hover:bg-gray-200 transition-colors duration-200 flex items-center justify-center"
-                >
-                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                  Details
-                </button>
-              )}
-              {onAddToTrip && (
-                <button
-                  onClick={() => onAddToTrip(place)}
-                  className="flex-1 px-2 py-1.5 bg-purple-100 text-purple-700 text-xs rounded-md hover:bg-purple-200 transition-colors duration-200 flex items-center justify-center"
-                >
-                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                  </svg>
-                  Add to Trip
-                </button>
-              )}
+              <div className="flex gap-2 mt-2">
+                {onGetDetails && (
+                  <button
+                    onClick={() => onGetDetails(place)}
+                    className="flex-1 px-2 py-1.5 bg-gray-100 text-gray-700 text-xs rounded-md hover:bg-gray-200 transition-colors duration-200 flex items-center justify-center"
+                  >
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    Details
+                  </button>
+                )}
+                {onAddToTrip && (
+                  <button
+                    onClick={() => onAddToTrip(place)}
+                    className="flex-1 px-2 py-1.5 bg-purple-100 text-purple-700 text-xs rounded-md hover:bg-purple-200 transition-colors duration-200 flex items-center justify-center"
+                  >
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                    </svg>
+                    Add to Trip
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

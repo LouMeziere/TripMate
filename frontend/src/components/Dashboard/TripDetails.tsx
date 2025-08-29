@@ -7,22 +7,45 @@ import EmbeddedChat, { EmbeddedChatRef } from '../Chat/EmbeddedChat';
 const TripDetails: React.FC = () => {
   const { tripId } = useParams<{ tripId: string }>();
   const navigate = useNavigate();
-  const { trips, loading } = useTrips();
+  const { trips, loading, fetchTrips } = useTrips();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [expandedActivities, setExpandedActivities] = useState<Set<string>>(new Set());
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const chatRef = useRef<EmbeddedChatRef>(null);
 
+  // Fetch trips if they haven't been loaded yet
   useEffect(() => {
-    if (tripId && trips.length > 0) {
-      const foundTrip = trips.find(t => t.id === tripId);
-      if (foundTrip) {
-        setTrip(foundTrip);
+    if (trips.length === 0 && !loading && !initialLoadComplete) {
+      fetchTrips();
+    }
+  }, [trips.length, loading, fetchTrips, initialLoadComplete]);
+
+  // Mark initial load as complete when we finish loading
+  useEffect(() => {
+    if (!loading && !initialLoadComplete) {
+      setInitialLoadComplete(true);
+    }
+  }, [loading, initialLoadComplete]);
+
+  useEffect(() => {
+    if (tripId && initialLoadComplete) {
+      // Only check for trip after initial load is complete
+      if (trips.length > 0) {
+        const foundTrip = trips.find(t => t.id === tripId);
+        if (foundTrip) {
+          setTrip(foundTrip);
+        } else {
+          // Trip not found after loading is complete, redirect to dashboard
+          console.warn(`Trip with ID ${tripId} not found`);
+          navigate('/dashboard');
+        }
       } else {
-        // Trip not found, redirect to dashboard
+        // No trips available after loading is complete
+        console.warn('No trips available after loading');
         navigate('/dashboard');
       }
     }
-  }, [tripId, trips, navigate]);
+  }, [tripId, trips, initialLoadComplete, navigate]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -213,6 +236,19 @@ const TripDetails: React.FC = () => {
     );
   }
 
+  // Show loading state while initial data is being fetched
+  if (loading || !initialLoadComplete) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading trip details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show not found state only after loading is complete
   if (!trip) {
     return (
       <div className="container mx-auto px-4 py-8">
