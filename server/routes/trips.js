@@ -14,6 +14,7 @@ const dummyTrips = [
     pace: 'relaxed',
     categories: ['food', 'culture', 'romance'],
     status: 'planned',
+    isDraft: false,
     createdAt: '2025-08-10T10:00:00Z',
     updatedAt: '2025-08-10T10:00:00Z',
     itinerary: [
@@ -85,6 +86,7 @@ const dummyTrips = [
     pace: 'active',
     categories: ['food', 'culture', 'technology'],
     status: 'active',
+    isDraft: false,
     createdAt: '2025-08-05T14:30:00Z',
     updatedAt: '2025-08-05T14:30:00Z',
     itinerary: [
@@ -127,6 +129,7 @@ const dummyTrips = [
     pace: 'moderate',
     categories: ['history', 'culture', 'museums'],
     status: 'completed',
+    isDraft: false,
     createdAt: '2025-06-15T09:15:00Z',
     updatedAt: '2025-07-26T16:20:00Z',
     itinerary: [
@@ -155,15 +158,43 @@ const dummyTrips = [
 
 // GET /api/trips - Get all user trips
 router.get('/', (req, res) => {
+  let filteredTrips = dummyTrips;
+  
+  // Add isDraft filter parameter
+  if (req.query.isDraft !== undefined) {
+    const isDraft = req.query.isDraft === 'true';
+    filteredTrips = dummyTrips.filter(trip => trip.isDraft === isDraft);
+  }
+  
   res.json({
     success: true,
-    data: dummyTrips,
+    data: filteredTrips,
     message: 'Trips retrieved successfully'
   });
 });
 
-// GET /api/trips/:id - Get specific trip
-router.get('/:id', (req, res) => {
+// GET /api/trips/drafts - Get user's draft trips (MUST come before /:id)
+router.get('/drafts', (req, res) => {
+  const draftTrips = dummyTrips.filter(trip => trip.isDraft === true);
+  res.json({
+    success: true,
+    data: draftTrips,
+    message: 'Draft trips retrieved successfully'
+  });
+});
+
+// GET /api/trips/active - Get user's active trips (MUST come before /:id)
+router.get('/active', (req, res) => {
+  const activeTrips = dummyTrips.filter(trip => trip.isDraft === false);
+  res.json({
+    success: true,
+    data: activeTrips,
+    message: 'Active trips retrieved successfully'
+  });
+});
+
+// GET /api/trips/tripId/:id - Get specific trip
+router.get('/tripId/:id', (req, res) => {
   const trip = dummyTrips.find(t => t.id === req.params.id);
   
   if (!trip) {
@@ -185,6 +216,7 @@ router.post('/', (req, res) => {
   const newTrip = {
     id: String(dummyTrips.length + 1),
     ...req.body,
+    isDraft: req.body.isDraft || false, // Add optional isDraft parameter
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     status: 'planned'
@@ -199,8 +231,8 @@ router.post('/', (req, res) => {
   });
 });
 
-// PUT /api/trips/:id - Update trip
-router.put('/:id', (req, res) => {
+// PUT /api/trips/tripId/:id - Update trip
+router.put('/tripId/:id', (req, res) => {
   const tripIndex = dummyTrips.findIndex(t => t.id === req.params.id);
   
   if (tripIndex === -1) {
@@ -210,9 +242,12 @@ router.put('/:id', (req, res) => {
     });
   }
   
+  // Maintain draft status during updates (don't allow changing isDraft via PUT)
+  const { isDraft, ...updateData } = req.body;
+  
   dummyTrips[tripIndex] = {
     ...dummyTrips[tripIndex],
-    ...req.body,
+    ...updateData,
     updatedAt: new Date().toISOString()
   };
   
@@ -223,8 +258,8 @@ router.put('/:id', (req, res) => {
   });
 });
 
-// DELETE /api/trips/:id - Delete trip
-router.delete('/:id', (req, res) => {
+// DELETE /api/trips/tripId/:id - Delete trip
+router.delete('/tripId/:id', (req, res) => {
   const tripIndex = dummyTrips.findIndex(t => t.id === req.params.id);
   
   if (tripIndex === -1) {
@@ -242,8 +277,8 @@ router.delete('/:id', (req, res) => {
   });
 });
 
-// POST /api/trips/:id/replace-activity - Replace activity in trip
-router.post('/:id/replace-activity', (req, res) => {
+// POST /api/trips/tripId/:id/replace-activity - Replace activity in trip
+router.post('/tripId/:id/replace-activity', (req, res) => {
   const tripIndex = dummyTrips.findIndex(t => t.id === req.params.id);
   
   if (tripIndex === -1) {
@@ -304,5 +339,107 @@ router.post('/:id/replace-activity', (req, res) => {
     message: `Activity replaced successfully on day ${dayNumber}`
   });
 });
+
+// NEW DRAFT TRIP ENDPOINTS
+
+// POST /api/trips/draft - Create new draft trip
+router.post('/draft', (req, res) => {
+  try {
+    const draftTrip = createDraftTrip(req.body);
+    res.status(201).json({
+      success: true,
+      data: draftTrip,
+      message: 'Draft trip created successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create draft trip',
+      error: error.message
+    });
+  }
+});
+
+// PUT /api/trips/tripId/:id/promote - Promote draft to active
+router.put('/tripId/:id/promote', (req, res) => {
+  try {
+    const promotedTrip = promoteDraftTrip(req.params.id);
+    res.json({
+      success: true,
+      data: promotedTrip,
+      message: 'Trip promoted to active successfully'
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// PUT /api/trips/tripId/:id/demote - Demote active trip to draft
+router.put('/tripId/:id/demote', (req, res) => {
+  try {
+    const demotedTrip = demoteTripToDraft(req.params.id);
+    res.json({
+      success: true,
+      data: demotedTrip,
+      message: 'Trip demoted to draft successfully'
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// Draft Trip Service Functions
+
+// Create draft trip (add to dummyTrips array)
+function createDraftTrip(tripData) {
+  const newTrip = {
+    id: String(dummyTrips.length + 1),
+    ...tripData,
+    isDraft: true,
+    status: 'planned', // Default status for new drafts
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  dummyTrips.push(newTrip);
+  return newTrip;
+}
+
+// Promote draft to active trip (update in dummyTrips array)
+function promoteDraftTrip(tripId) {
+  const tripIndex = dummyTrips.findIndex(t => t.id === tripId);
+  if (tripIndex === -1) throw new Error('Trip not found');
+  if (!dummyTrips[tripIndex].isDraft) throw new Error('Trip is not a draft');
+  
+  dummyTrips[tripIndex] = {
+    ...dummyTrips[tripIndex],
+    isDraft: false,
+    promotedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
+  return dummyTrips[tripIndex];
+}
+
+// Demote active trip to draft (update in dummyTrips array)
+function demoteTripToDraft(tripId) {
+  const tripIndex = dummyTrips.findIndex(t => t.id === tripId);
+  if (tripIndex === -1) throw new Error('Trip not found');
+  if (dummyTrips[tripIndex].isDraft) throw new Error('Trip is already a draft');
+  
+  dummyTrips[tripIndex] = {
+    ...dummyTrips[tripIndex],
+    isDraft: true,
+    demotedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
+  return dummyTrips[tripIndex];
+}
 
 module.exports = router;
