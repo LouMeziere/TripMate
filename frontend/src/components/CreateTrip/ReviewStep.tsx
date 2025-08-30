@@ -5,10 +5,9 @@ interface ReviewStepProps {
   data: TripFormData;
   errors: Record<string, string>;
   onSubmit: () => void;
-  loading: boolean;
 }
 
-const ReviewStep: React.FC<ReviewStepProps> = ({ data, errors, onSubmit, loading }) => {
+const ReviewStep: React.FC<ReviewStepProps> = ({ data, errors, onSubmit }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'long',
