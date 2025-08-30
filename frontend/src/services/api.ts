@@ -47,8 +47,11 @@ export interface Trip {
   pace: 'relaxed' | 'moderate' | 'active';
   categories: string[];
   status: 'planned' | 'active' | 'completed';
+  isDraft: boolean;
   createdAt: string;
   updatedAt: string;
+  promotedAt?: string;
+  demotedAt?: string;
   itinerary: {
     day: number;
     activities: {
@@ -87,7 +90,7 @@ export const tripAPI = {
   },
 
   // Create new trip
-  createTrip: async (tripData: Omit<Trip, 'id' | 'createdAt' | 'updatedAt' | 'status'>): Promise<ApiResponse<Trip>> => {
+  createTrip: async (tripData: Omit<Trip, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'isDraft' | 'promotedAt' | 'demotedAt'>): Promise<ApiResponse<Trip>> => {
     const response = await api.post('/trips', tripData);
     return response.data;
   },
@@ -95,7 +98,7 @@ export const tripAPI = {
   // Update a trip
   updateTrip: async (tripId: string, updates: Partial<Trip>): Promise<ApiResponse<Trip>> => {
     try {
-      const response = await api.put(`/trips/${tripId}`, updates);
+      const response = await api.put(`/trips/tripId/${tripId}`, updates);
       return response.data;
     } catch (error) {
       console.error('Trips API updateTrip error:', error);
@@ -117,7 +120,7 @@ export const tripAPI = {
     }
   ): Promise<ApiResponse<Trip>> => {
     try {
-      const response = await api.post(`/trips/${tripId}/replace-activity`, {
+      const response = await api.post(`/trips/tripId/${tripId}/replace-activity`, {
         dayNumber,
         activityIndex,
         newActivity
@@ -131,8 +134,53 @@ export const tripAPI = {
 
   // Delete trip
   deleteTrip: async (id: string): Promise<ApiResponse<null>> => {
-    const response = await api.delete(`/trips/${id}`);
+    const response = await api.delete(`/trips/tripId/${id}`);
     return response.data;
+  },
+
+  // Get draft trips
+  getDraftTrips: async (): Promise<ApiResponse<Trip[]>> => {
+    const response = await api.get('/trips/drafts');
+    return response.data;
+  },
+
+  // Get active trips
+  getActiveTrips: async (): Promise<ApiResponse<Trip[]>> => {
+    const response = await api.get('/trips/active');
+    return response.data;
+  },
+
+  // Create draft trip
+  createDraftTrip: async (tripData: Omit<Trip, 'id' | 'createdAt' | 'updatedAt' | 'isDraft' | 'status' | 'promotedAt' | 'demotedAt'>): Promise<ApiResponse<Trip>> => {
+    try {
+      const response = await api.post('/trips/draft', tripData);
+      return response.data;
+    } catch (error) {
+      console.error('Trips API createDraftTrip error:', error);
+      throw error;
+    }
+  },
+
+  // Promote draft trip to active
+  promoteDraftTrip: async (tripId: string): Promise<ApiResponse<Trip>> => {
+    try {
+      const response = await api.put(`/trips/tripId/${tripId}/promote`);
+      return response.data;
+    } catch (error) {
+      console.error('Trips API promoteDraftTrip error:', error);
+      throw error;
+    }
+  },
+
+  // Demote active trip to draft
+  demoteTripToDraft: async (tripId: string): Promise<ApiResponse<Trip>> => {
+    try {
+      const response = await api.put(`/trips/tripId/${tripId}/demote`);
+      return response.data;
+    } catch (error) {
+      console.error('Trips API demoteTripToDraft error:', error);
+      throw error;
+    }
   },
 
   // Generate trip from user input
