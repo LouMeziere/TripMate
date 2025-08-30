@@ -4,17 +4,30 @@ import { chatAPI } from '../../services/api';
 import { useTrips } from '../../hooks/useTrips';
 import ChatContainer from './ChatContainer';
 import ChatInput from './ChatInput';
+import AddToTripModal from './AddToTripModal';
+import Toast from './Toast';
 import { Message, SearchResult } from './ChatMessage';
 
 const Chat: React.FC = () => {
   const { tripId } = useParams<{ tripId?: string }>();
-  const { trips } = useTrips();
+  const { trips, updateTrip } = useTrips();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tripContext, setTripContext] = useState<any>(null);
   const [selectedTripTitle, setSelectedTripTitle] = useState<string | null>(null);
+  
+  // Add to Trip Modal state
+  const [isAddToTripModalOpen, setIsAddToTripModalOpen] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState<SearchResult | null>(null);
+  
+  // Toast notification state
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error';
+    isVisible: boolean;
+  }>({ message: '', type: 'success', isVisible: false });
 
   // Load trip context and chat history when component mounts or tripId changes
   useEffect(() => {
@@ -131,20 +144,107 @@ const Chat: React.FC = () => {
     handleSendMessage(suggestion);
   };
 
+  // Utility function to show toast notifications
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type, isVisible: true });
+  };
+
+  // Utility function to calculate trip duration in days
+  const getTripDays = () => {
+    if (!tripContext?.startDate || !tripContext?.endDate) return 1;
+    const start = new Date(tripContext.startDate);
+    const end = new Date(tripContext.endDate);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
   // Handle adding a place to the trip
   const handleAddToTrip = (place: SearchResult) => {
     try {
-      console.log('Adding place to trip:', place);
-      // TODO: Implement trip addition functionality
-      // For now, just show a notification or update state
-      if (place?.name) {
-        alert(`Added "${place.name}" to your trip! (Feature coming soon)`);
-      } else {
-        alert('Added place to your trip! (Feature coming soon)');
+      if (!tripId) {
+        showToast('No trip selected. Please select a trip first.', 'error');
+        return;
       }
+      
+      console.log('Opening add to trip modal for place:', place);
+      setSelectedPlace(place);
+      setIsAddToTripModalOpen(true);
+    } catch (error) {
+      console.error('Error opening add to trip modal:', error);
+      showToast('Error opening add to trip dialog. Please try again.', 'error');
+    }
+  };
+
+  // Handle actually adding the place to a specific day
+  const handleAddPlaceToDay = async (day: number, place: SearchResult) => {
+    if (!tripId || !tripContext) {
+      throw new Error('No trip selected');
+    }
+
+    try {
+      // Find the current trip
+      const currentTrip = trips.find(trip => trip.id === tripId);
+      if (!currentTrip) {
+        throw new Error('Trip not found');
+      }
+
+      // Create the new activity from the search result
+      const newActivity = {
+        name: place.name,
+        category: place.category || 'general',
+        duration: '2 hours', // Default duration
+        address: place.address,
+        rating: place.rating || 0,
+        description: `Added from search results`,
+        scheduledTime: '', // Will be set automatically or by user later
+        tel: '',
+        email: '',
+        price: place.price || 0
+      };
+
+      // Clone the current itinerary
+      const updatedItinerary = [...currentTrip.itinerary];
+      
+      // Find or create the day
+      let dayPlan = updatedItinerary.find(d => d.day === day);
+      if (!dayPlan) {
+        // Create new day if it doesn't exist
+        dayPlan = { day, activities: [] };
+        updatedItinerary.push(dayPlan);
+        updatedItinerary.sort((a, b) => a.day - b.day);
+      } else {
+        // Make sure we're working with a copy
+        const dayIndex = updatedItinerary.findIndex(d => d.day === day);
+        updatedItinerary[dayIndex] = {
+          ...dayPlan,
+          activities: [...dayPlan.activities, newActivity]
+        };
+      }
+
+      // If we created a new day, add the activity to it
+      if (!dayPlan.activities.includes(newActivity)) {
+        dayPlan.activities = [...dayPlan.activities, newActivity];
+      }
+
+      // Update the trip with the new itinerary
+      const updatedTrip = {
+        ...currentTrip,
+        itinerary: updatedItinerary
+      };
+
+      await updateTrip(tripId, updatedTrip);
+      
+      // Update local trip context
+      setTripContext({
+        ...tripContext,
+        itinerary: updatedItinerary
+      });
+
+      showToast(`Added "${place.name}" to Day ${day} of your trip!`, 'success');
+      
     } catch (error) {
       console.error('Error adding place to trip:', error);
-      alert('Error adding place to trip. Please try again.');
+      throw error;
     }
   };
 
@@ -278,6 +378,30 @@ const Chat: React.FC = () => {
           />
         </div>
       </div>
+      
+      {/* Add to Trip Modal */}
+      {tripId && selectedPlace && (
+        <AddToTripModal
+          isOpen={isAddToTripModalOpen}
+          onClose={() => {
+            setIsAddToTripModalOpen(false);
+            setSelectedPlace(null);
+          }}
+          place={selectedPlace}
+          tripId={tripId}
+          tripTitle={selectedTripTitle || 'Your Trip'}
+          tripDays={getTripDays()}
+          onAddToTrip={handleAddPlaceToDay}
+        />
+      )}
+      
+      {/* Toast Notifications */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={() => setToast(prev => ({ ...prev, isVisible: false }))}
+      />
     </div>
   );
 };
