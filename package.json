@@ -29,6 +29,7 @@
     "express": "^4.21.2",
     "ml-kmeans": "^6.0.0",
     "node-kmeans": "^1.1.9",
+    "npm": "^11.5.2",
     "openai": "^5.10.2"
   },
   "devDependencies": {

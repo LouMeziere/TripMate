@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTrips } from '../../hooks/useTrips';
 import { tripAPI } from '../../services/api';
@@ -8,7 +8,7 @@ import BasicInfoStep from './BasicInfoStep';
 import PreferencesStep from './PreferencesStep';
 import CategoriesStep from './CategoriesStep';
 import ReviewStep from './ReviewStep';
-import CreateTripChat from './CreateTripChat';
+import TripRequestPreview from './TripRequestPreview';
 
 export interface TripFormData {
   // Basic Info (Step 1)
@@ -24,6 +24,9 @@ export interface TripFormData {
   
   // Categories (Step 3)
   categories: string[];
+  
+  // User additions (Step 4)
+  userAdditions?: string[];
   
   // Generated content will be added in review step
   title?: string;
@@ -48,9 +51,20 @@ const CreateTrip: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<TripFormData>(INITIAL_FORM_DATA);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [userPreferences, setUserPreferences] = useState<string[]>([]); // Store chat preferences
+  const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
+  
+  // User additions state
+  const [userAdditions, setUserAdditions] = useState<string[]>([]);
+  const [currentAddition, setCurrentAddition] = useState('');
 
   const totalSteps = 4;
+
+  // Auto-expand preview when reaching step 4
+  useEffect(() => {
+    if (currentStep === 4) {
+      setIsPreviewCollapsed(false);
+    }
+  }, [currentStep]);
 
   // Form validation for each step
   const validateStep = (step: number): boolean => {
@@ -115,8 +129,20 @@ const CreateTrip: React.FC = () => {
     setFormErrors(clearedErrors);
   };
 
-  const handleUserPreferences = (preferences: string[]) => {
-    setUserPreferences(preferences);
+  // User additions handler functions
+  const handleAddToRequest = () => {
+    if (currentAddition.trim()) {
+      setUserAdditions(prev => [...prev, currentAddition.trim()]);
+      setCurrentAddition('');
+    }
+  };
+
+  const removeAddition = (index: number) => {
+    setUserAdditions(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const clearAllAdditions = () => {
+    setUserAdditions([]);
   };
 
   const handleSubmit = async () => {
@@ -124,10 +150,10 @@ const CreateTrip: React.FC = () => {
       // Generate natural language paragraph from form data
       let tripDescription = convertFormDataToParagraph(formData);
       
-      // Add user preferences from chat if any
-      if (userPreferences.length > 0) {
-        const additionalPreferences = userPreferences.join(' ');
-        tripDescription += ` Additionally: ${additionalPreferences}`;
+      // Add user additions if any
+      if (userAdditions.length > 0) {
+        const additionalRequests = userAdditions.join(' ');
+        tripDescription += ` Additional requests: ${additionalRequests}`;
       }
       
       console.log('Generated trip description:', tripDescription);
@@ -150,6 +176,7 @@ const CreateTrip: React.FC = () => {
         pace: formData.pace,
         categories: formData.categories,
         status: 'planned' as const,
+        userAdditions: userAdditions,
         itinerary: response.data.itinerary || [],
       };
 
@@ -221,71 +248,76 @@ const CreateTrip: React.FC = () => {
 
       {/* Main Content - Conditional Layout */}
       {currentStep < 4 ? (
-        /* Steps 1-3: Centered Layout with Compact Trip Request */
-        <div className="max-w-4xl mx-auto">
+        /* Steps 1-3: Dynamic Layout with Collapsible Sidebar */
+        <div className={`grid grid-cols-1 gap-6 max-w-7xl mx-auto ${
+          isPreviewCollapsed ? 'lg:grid-cols-[1fr_60px]' : 'lg:grid-cols-[2fr_1fr]'
+        }`}>
           {/* Form Content */}
-          <div className="bg-white shadow-lg rounded-lg mb-6">
-            <div className="px-6 py-8">
-              {renderStep()}
+          <div className="order-1">
+            <div className={`bg-white shadow-lg rounded-lg mb-6 ${
+              isPreviewCollapsed ? 'max-w-4xl mx-auto' : ''
+            }`}>
+              <div className="px-6 py-8">
+                {renderStep()}
+              </div>
+
+              {/* Navigation Buttons */}
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between rounded-b-lg">
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  disabled={currentStep === 1}
+                  className={`px-4 py-2 text-sm font-medium rounded-md ${
+                    currentStep === 1
+                      ? 'text-gray-400 cursor-not-allowed'
+                      : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  Back
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Next
+                </button>
+              </div>
             </div>
 
-            {/* Navigation Buttons */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between rounded-b-lg">
-              <button
-                type="button"
-                onClick={handleBack}
-                disabled={currentStep === 1}
-                className={`px-4 py-2 text-sm font-medium rounded-md ${
-                  currentStep === 1
-                    ? 'text-gray-400 cursor-not-allowed'
-                    : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                Back
-              </button>
-
-              <button
-                type="button"
-                onClick={handleNext}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                Next
-              </button>
-            </div>
+            {/* Error Display */}
+            {formErrors.submit && (
+              <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-4">
+                <p className="text-red-800 text-sm">{formErrors.submit}</p>
+              </div>
+            )}
           </div>
 
-          {/* Compact Trip Request Display */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <div className="flex items-center mb-4">
-              <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <h3 className="text-lg font-semibold text-blue-900">Your Trip Request Preview</h3>
-            </div>
-            <div className="bg-gray-50 rounded-md p-4 border border-blue-100">
-              <p className="text-gray-700 text-sm leading-relaxed">
-                {currentStep >= 1 && formData.destination ? 
-                  convertFormDataToParagraph(formData) : 
-                  "Fill out the form above to see your trip request preview..."
-                }
-              </p>
+          {/* Trip Request Preview - New Component */}
+          <div className="order-2">
+            <div className="sticky top-4">
+              <TripRequestPreview
+                formData={formData}
+                userAdditions={userAdditions}
+                isInteractive={false} // Locked for steps 1-3
+                currentAddition={currentAddition}
+                onAdditionChange={setCurrentAddition}
+                onAddRequest={handleAddToRequest}
+                onRemoveAddition={removeAddition}
+                onClearAll={clearAllAdditions}
+                isCollapsed={isPreviewCollapsed}
+                onToggleCollapse={() => setIsPreviewCollapsed(!isPreviewCollapsed)}
+              />
             </div>
           </div>
-
-          {/* Error Display */}
-          {formErrors.submit && (
-            <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-4">
-              <p className="text-red-800 text-sm">{formErrors.submit}</p>
-            </div>
-          )}
         </div>
       ) : (
-        /* Step 4: Two Column Layout with Full Chat */
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Trip Creation Form */}
-          <div className="lg:col-span-2">
-            {/* Form Content */}
-            <div className="bg-white shadow-lg rounded-lg">
+        /* Step 4: Layout with Interactive Trip Request Preview */
+        <div className={`grid grid-cols-1 gap-6 max-w-7xl mx-auto lg:grid-cols-[2fr_1fr]`}>
+          {/* Form Content */}
+          <div className="lg:col-span-1">
+            <div className="bg-white shadow-lg rounded-lg mb-6">
               <div className="px-6 py-8">
                 {renderStep()}
               </div>
@@ -328,14 +360,20 @@ const CreateTrip: React.FC = () => {
             )}
           </div>
 
-          {/* Right Column - Create Trip Chat */}
+          {/* Interactive Trip Request Preview */}
           <div className="lg:col-span-1">
-            <div className="sticky top-4 h-[700px]">
-              <CreateTripChat 
-                tripId={`draft-${Date.now()}`}
-                currentStep={currentStep}
+            <div className="sticky top-4">
+              <TripRequestPreview
                 formData={formData}
-                onUserPreferences={handleUserPreferences}
+                userAdditions={userAdditions}
+                isInteractive={true} // Interactive for step 4
+                currentAddition={currentAddition}
+                onAdditionChange={setCurrentAddition}
+                onAddRequest={handleAddToRequest}
+                onRemoveAddition={removeAddition}
+                onClearAll={clearAllAdditions}
+                isCollapsed={isPreviewCollapsed}
+                onToggleCollapse={() => setIsPreviewCollapsed(!isPreviewCollapsed)}
               />
             </div>
           </div>
