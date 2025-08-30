@@ -10,26 +10,23 @@ const TripDetails: React.FC = () => {
   const { trips, loading, fetchTrips } = useTrips();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [expandedActivities, setExpandedActivities] = useState<Set<string>>(new Set());
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [hasFetchedTrips, setHasFetchedTrips] = useState(false);
   const chatRef = useRef<EmbeddedChatRef>(null);
 
-  // Fetch trips if they haven't been loaded yet
+  // Fetch trips if they haven't been loaded yet, or mark as fetched if already available
   useEffect(() => {
-    if (trips.length === 0 && !loading && !initialLoadComplete) {
+    if (trips.length === 0 && !loading && !hasFetchedTrips) {
+      setHasFetchedTrips(true);
       fetchTrips();
+    } else if (trips.length > 0 && !hasFetchedTrips) {
+      // Trips are already loaded (e.g., navigating from dashboard), mark as fetched
+      setHasFetchedTrips(true);
     }
-  }, [trips.length, loading, fetchTrips, initialLoadComplete]);
-
-  // Mark initial load as complete when we finish loading
-  useEffect(() => {
-    if (!loading && !initialLoadComplete) {
-      setInitialLoadComplete(true);
-    }
-  }, [loading, initialLoadComplete]);
+  }, [trips.length, loading, fetchTrips, hasFetchedTrips]);
 
   useEffect(() => {
-    if (tripId && initialLoadComplete) {
-      // Only check for trip after initial load is complete
+    if (tripId && hasFetchedTrips && !loading) {
+      // Only check for trip after we've attempted to fetch AND loading is complete
       if (trips.length > 0) {
         const foundTrip = trips.find(t => t.id === tripId);
         if (foundTrip) {
@@ -45,7 +42,7 @@ const TripDetails: React.FC = () => {
         navigate('/dashboard');
       }
     }
-  }, [tripId, trips, initialLoadComplete, navigate]);
+  }, [tripId, trips, loading, hasFetchedTrips, navigate]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -237,7 +234,7 @@ const TripDetails: React.FC = () => {
   }
 
   // Show loading state while initial data is being fetched
-  if (loading || !initialLoadComplete) {
+  if (loading || (!hasFetchedTrips)) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
