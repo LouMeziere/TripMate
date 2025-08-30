@@ -242,4 +242,67 @@ router.delete('/:id', (req, res) => {
   });
 });
 
+// POST /api/trips/:id/replace-activity - Replace activity in trip
+router.post('/:id/replace-activity', (req, res) => {
+  const tripIndex = dummyTrips.findIndex(t => t.id === req.params.id);
+  
+  if (tripIndex === -1) {
+    return res.status(404).json({
+      success: false,
+      message: 'Trip not found'
+    });
+  }
+  
+  const { dayNumber, activityIndex, newActivity } = req.body;
+  
+  if (!dayNumber || activityIndex === undefined || !newActivity) {
+    return res.status(400).json({
+      success: false,
+      message: 'Missing required fields: dayNumber, activityIndex, and newActivity'
+    });
+  }
+  
+  const trip = dummyTrips[tripIndex];
+  const dayPlan = trip.itinerary.find(day => day.day === dayNumber);
+  
+  if (!dayPlan) {
+    return res.status(404).json({
+      success: false,
+      message: `Day ${dayNumber} not found in trip itinerary`
+    });
+  }
+  
+  if (activityIndex < 0 || activityIndex >= dayPlan.activities.length) {
+    return res.status(400).json({
+      success: false,
+      message: `Invalid activity index ${activityIndex} for day ${dayNumber}`
+    });
+  }
+  
+  // Create the new activity with default fields
+  const activityToReplace = {
+    name: newActivity.name,
+    category: newActivity.category,
+    duration: '2 hours', // Default duration
+    address: newActivity.address,
+    rating: newActivity.rating || 4.0,
+    description: newActivity.description || `Visit ${newActivity.name}`,
+    tel: '', // Could be enhanced with phone number from API
+    price: 2, // Default price level
+    scheduledTime: dayPlan.activities[activityIndex].scheduledTime || '10:00' // Keep original time or default
+  };
+  
+  // Replace the activity
+  dayPlan.activities[activityIndex] = activityToReplace;
+  
+  // Update trip timestamp
+  trip.updatedAt = new Date().toISOString();
+  
+  res.json({
+    success: true,
+    data: trip,
+    message: `Activity replaced successfully on day ${dayNumber}`
+  });
+});
+
 module.exports = router;

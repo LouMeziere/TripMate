@@ -384,7 +384,6 @@ const TripDetails: React.FC = () => {
 
           {/* Itinerary */}
           <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Itinerary</h2>
             
             {trip.itinerary && trip.itinerary.length > 0 ? (
               <div className="space-y-6">

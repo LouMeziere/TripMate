@@ -26,7 +26,7 @@ async function executeSearch(searchIntent) {
       name: place.name,
       address: place.location?.formatted_address || 'Address not available',
       category: place.categories?.[0]?.name || 'General',
-      distance: place.distance ? `${Math.round(place.distance)}m` : null,
+      distance: place.distance ? `${(place.distance / 1000).toFixed(1)}km` : null,
       rating: place.rating || null,
       price: place.price || null,
       website: place.website || null,

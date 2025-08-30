@@ -92,10 +92,41 @@ export const tripAPI = {
     return response.data;
   },
 
-  // Update trip
-  updateTrip: async (id: string, tripData: Partial<Trip>): Promise<ApiResponse<Trip>> => {
-    const response = await api.put(`/trips/${id}`, tripData);
-    return response.data;
+  // Update a trip
+  updateTrip: async (tripId: string, updates: Partial<Trip>): Promise<ApiResponse<Trip>> => {
+    try {
+      const response = await api.put(`/trips/${tripId}`, updates);
+      return response.data;
+    } catch (error) {
+      console.error('Trips API updateTrip error:', error);
+      throw error;
+    }
+  },
+
+  // Replace an activity in a trip
+  replaceActivity: async (
+    tripId: string, 
+    dayNumber: number, 
+    activityIndex: number, 
+    newActivity: {
+      name: string;
+      category: string;
+      address: string;
+      rating?: number;
+      description?: string;
+    }
+  ): Promise<ApiResponse<Trip>> => {
+    try {
+      const response = await api.post(`/trips/${tripId}/replace-activity`, {
+        dayNumber,
+        activityIndex,
+        newActivity
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Trips API replaceActivity error:', error);
+      throw error;
+    }
   },
 
   // Delete trip

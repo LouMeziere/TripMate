@@ -5,6 +5,7 @@ import { useTrips } from '../../hooks/useTrips';
 import ChatContainer from './ChatContainer';
 import ChatInput from './ChatInput';
 import AddToTripModal from './AddToTripModal';
+import ReplaceActivityModal from './ReplaceActivityModal';
 import Toast from './Toast';
 import { Message, SearchResult } from './ChatMessage';
 
@@ -21,6 +22,10 @@ const Chat: React.FC = () => {
   // Add to Trip Modal state
   const [isAddToTripModalOpen, setIsAddToTripModalOpen] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<SearchResult | null>(null);
+  
+  // Replace Activity Modal state
+  const [isReplaceActivityModalOpen, setIsReplaceActivityModalOpen] = useState(false);
+  const [replaceActivityPlace, setReplaceActivityPlace] = useState<SearchResult | null>(null);
   
   // Toast notification state
   const [toast, setToast] = useState<{
@@ -248,6 +253,77 @@ const Chat: React.FC = () => {
     }
   };
 
+  // Handle replacing an activity in the trip
+  const handleReplaceActivity = (place: SearchResult) => {
+    try {
+      if (!tripId) {
+        showToast('No trip selected. Please select a trip first.', 'error');
+        return;
+      }
+      
+      console.log('Opening replace activity modal for place:', place);
+      setReplaceActivityPlace(place);
+      setIsReplaceActivityModalOpen(true);
+    } catch (error) {
+      console.error('Error opening replace activity modal:', error);
+      showToast('Error opening replace activity dialog. Please try again.', 'error');
+    }
+  };
+
+  // Handle actually replacing an activity
+  const handleReplaceActivityOnDay = async (dayNumber: number, activityIndex: number, place: SearchResult) => {
+    if (!tripId || !tripContext) {
+      throw new Error('No trip selected');
+    }
+
+    try {
+      // Use the API to replace the activity
+      const response = await fetch(`/api/trips/${tripId}/replace-activity`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          dayNumber,
+          activityIndex,
+          newActivity: {
+            name: place.name,
+            category: place.category || 'general',
+            address: place.address,
+            rating: place.rating
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to replace activity');
+      }
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to replace activity');
+      }
+
+      // Update local trip context
+      const updatedTrip = result.data;
+      setTripContext({
+        ...tripContext,
+        itinerary: updatedTrip.itinerary
+      });
+
+      // Update trips context
+      await updateTrip(tripId, updatedTrip);
+
+      showToast(`Replaced activity with "${place.name}" on Day ${dayNumber}!`, 'success');
+      
+    } catch (error) {
+      console.error('Error replacing activity:', error);
+      throw error;
+    }
+  };
+
   // Handle getting more details about a place
   const handleGetDetails = (place: SearchResult) => {
     try {
@@ -356,6 +432,7 @@ const Chat: React.FC = () => {
           isLoading={isLoading}
           onSuggestionClick={handleSuggestionClick}
           onAddToTrip={handleAddToTrip}
+          onReplaceActivity={handleReplaceActivity}
           onGetDetails={handleGetDetails}
           initialSuggestions={getInitialSuggestions()}
           emptyStateMessage={
@@ -392,6 +469,22 @@ const Chat: React.FC = () => {
           tripTitle={selectedTripTitle || 'Your Trip'}
           tripDays={getTripDays()}
           onAddToTrip={handleAddPlaceToDay}
+        />
+      )}
+
+      {/* Replace Activity Modal */}
+      {isReplaceActivityModalOpen && tripContext && (
+        <ReplaceActivityModal
+          isOpen={isReplaceActivityModalOpen}
+          onClose={() => {
+            setIsReplaceActivityModalOpen(false);
+            setReplaceActivityPlace(null);
+          }}
+          place={replaceActivityPlace}
+          tripId={tripId!}
+          tripTitle={selectedTripTitle || 'Your Trip'}
+          itinerary={tripContext.itinerary || []}
+          onReplaceActivity={handleReplaceActivityOnDay}
         />
       )}
       

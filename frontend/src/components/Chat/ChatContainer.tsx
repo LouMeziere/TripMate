@@ -6,6 +6,7 @@ interface ChatContainerProps {
   isLoading?: boolean;
   onSuggestionClick?: (suggestion: string) => void;
   onAddToTrip?: (place: SearchResult) => void;
+  onReplaceActivity?: (place: SearchResult) => void;
   onGetDetails?: (place: SearchResult) => void;
   emptyStateMessage?: string;
   disableAutoScroll?: boolean;
@@ -17,6 +18,7 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
   isLoading = false,
   onSuggestionClick,
   onAddToTrip,
+  onReplaceActivity,
   onGetDetails,
   emptyStateMessage = "Start a conversation to plan your perfect trip!",
   initialSuggestions = ["Plan a trip", "Travel tips", "Budget advice"]
@@ -65,6 +67,7 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
               message={message} 
               onSuggestionClick={onSuggestionClick}
               onAddToTrip={onAddToTrip}
+              onReplaceActivity={onReplaceActivity}
               onGetDetails={onGetDetails}
             />
           </div>

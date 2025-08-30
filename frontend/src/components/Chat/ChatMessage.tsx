@@ -35,13 +35,15 @@ interface ChatMessageProps {
   message: Message;
   onSuggestionClick?: (suggestion: string) => void;
   onAddToTrip?: (place: SearchResult) => void;
+  onReplaceActivity?: (place: SearchResult) => void;
   onGetDetails?: (place: SearchResult) => void;
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ 
   message, 
   onSuggestionClick, 
-  onAddToTrip, 
+  onAddToTrip,
+  onReplaceActivity,
   onGetDetails 
 }) => {
   const isUser = message.type === 'user';
@@ -54,9 +56,22 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
     });
   };
 
+  // Use wider max-width for AI messages with search results
+  const getMaxWidthClass = () => {
+    if (isUser) {
+      return 'max-w-xs lg:max-w-md';
+    }
+    // AI messages with search results get more width
+    if (isAI && message.searchResults) {
+      return 'max-w-lg lg:max-w-3xl';
+    }
+    // Regular AI messages
+    return 'max-w-md lg:max-w-2xl';
+  };
+
   return (
     <div className={`flex mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`flex ${isUser ? 'max-w-xs lg:max-w-md' : 'max-w-md lg:max-w-2xl'} ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div className={`flex ${getMaxWidthClass()} ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Avatar */}
         <div className={`flex-shrink-0 ${isUser ? 'ml-3' : 'mr-3'}`}>
           {isUser ? (
@@ -117,6 +132,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
             <SearchResults 
               searchResults={message.searchResults}
               onAddToTrip={onAddToTrip}
+              onReplaceActivity={onReplaceActivity}
               onGetDetails={onGetDetails}
             />
           )}
