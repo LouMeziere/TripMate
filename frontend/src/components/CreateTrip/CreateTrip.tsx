@@ -347,7 +347,7 @@ const CreateTrip: React.FC = () => {
                       : 'bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500'
                   }`}
                 >
-                  {loading ? 'Creating Trip...' : 'Create Trip'}
+                  {loading ? 'Generating Draft...' : 'Generate Draft'}
                 </button>
               </div>
             </div>
