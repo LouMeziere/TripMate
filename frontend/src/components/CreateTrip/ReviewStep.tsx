@@ -122,25 +122,25 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ data, errors, onSubmit, loading
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Categories */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-          <svg className="h-5 w-5 text-gray-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
-          Activity Categories ({data.categories.length})
-        </h4>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {data.categories.map((category) => (
-            <span
+        {/* Categories */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+            <svg className="h-5 w-5 text-gray-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            Activity Categories ({data.categories.length})
+          </h4>
+          <div className="flex flex-wrap gap-3">
+            {data.categories.map((category) => (
+              <span
               key={category}
-              className="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium bg-green-100 text-green-800 border border-green-200"
-            >
-              {getCategoryLabel(category)}
-            </span>
-          ))}
+              className="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium bg-green-100 text-green-800 border border-green-200 whitespace-nowrap"
+              >
+                {getCategoryLabel(category)}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
