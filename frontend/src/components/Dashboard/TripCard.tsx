@@ -4,11 +4,10 @@ import { Trip } from '../../services/api';
 interface TripCardProps {
   trip: Trip;
   onSelect?: (trip: Trip) => void;
-  onEdit?: (trip: Trip) => void;
   onDelete?: (tripId: string) => void;
 }
 
-const TripCard: React.FC<TripCardProps> = ({ trip, onSelect, onEdit, onDelete }) => {
+const TripCard: React.FC<TripCardProps> = ({ trip, onSelect, onDelete }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -162,16 +161,6 @@ const TripCard: React.FC<TripCardProps> = ({ trip, onSelect, onEdit, onDelete })
         </button>
         
         <div className="flex space-x-2">
-          {onEdit && (
-            <button
-              onClick={() => onEdit(trip)}
-              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-              title="Edit trip"
-            >
-              <span className="material-symbols-outlined text-base">edit</span>
-            </button>
-          )}
-          
           {onDelete && (
             <button
               onClick={() => onDelete(trip.id)}

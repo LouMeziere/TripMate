@@ -262,10 +262,6 @@ const TripDetails: React.FC = () => {
               <span className="material-symbols-outlined text-sm mr-2">chat</span>
               Full Chat
             </Link>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
-              <span className="material-symbols-outlined text-sm mr-2">edit</span>
-              Edit Trip
-            </button>
           </div>
         </div>
 
@@ -380,10 +376,7 @@ const TripDetails: React.FC = () => {
                           
                           return (
                             <div key={index} className="group relative">
-                              {/* Timeline connector */}
-                              {index < dayPlan.activities.length - 1 && (
-                                <div className="absolute left-6 top-16 w-0.5 h-8 bg-gray-300"></div>
-                              )}
+                              {/* Timeline connector removed */}
                               
                               <div className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
                                 <div 

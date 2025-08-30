@@ -104,7 +104,6 @@ const TripList: React.FC<TripListProps> = ({
           key={trip.id}
           trip={trip}
           onSelect={onTripSelect}
-          onEdit={onTripEdit}
           onDelete={onTripDelete}
         />
       ))}
