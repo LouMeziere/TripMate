@@ -5,6 +5,7 @@ import ChatContainer from './ChatContainer';
 import ChatInput from './ChatInput';
 import AddToTripModal from './AddToTripModal';
 import ReplaceActivityModal from './ReplaceActivityModal';
+import PlaceDetailsModal from './PlaceDetailsModal';
 import Toast from './Toast';
 import { Message, SearchResult } from './ChatMessage';
 
@@ -38,6 +39,10 @@ const EmbeddedChat = forwardRef<EmbeddedChatRef, EmbeddedChatProps>(({
   // Replace Activity Modal state
   const [isReplaceActivityModalOpen, setIsReplaceActivityModalOpen] = useState(false);
   const [replaceActivityPlace, setReplaceActivityPlace] = useState<SearchResult | null>(null);
+  
+  // Place Details Modal state
+  const [isPlaceDetailsModalOpen, setIsPlaceDetailsModalOpen] = useState(false);
+  const [placeDetailsPlace, setPlaceDetailsPlace] = useState<SearchResult | null>(null);
   
   // Toast notification state
   const [toast, setToast] = useState<{
@@ -141,17 +146,12 @@ const EmbeddedChat = forwardRef<EmbeddedChatRef, EmbeddedChatProps>(({
   // Handle getting more details about a place
   const handleGetDetails = (place: SearchResult) => {
     try {
-      console.log('Getting details for place:', place);
-      // TODO: Implement details view/modal
-      // For now, just show basic info
-      if (place?.name && place?.address && place?.category) {
-        alert(`Details for ${place.name}:\n${place.address}\nCategory: ${place.category}`);
-      } else {
-        alert('Place details are not fully available.');
-      }
+      console.log('Opening place details modal for place:', place);
+      setPlaceDetailsPlace(place);
+      setIsPlaceDetailsModalOpen(true);
     } catch (error) {
-      console.error('Error getting place details:', error);
-      alert('Error getting place details. Please try again.');
+      console.error('Error opening place details modal:', error);
+      showToast('Error opening place details. Please try again.', 'error');
     }
   };
 
@@ -409,6 +409,16 @@ const EmbeddedChat = forwardRef<EmbeddedChatRef, EmbeddedChatProps>(({
           onReplaceActivity={handleReplaceActivityOnDay}
         />
       )}
+
+      {/* Place Details Modal */}
+      <PlaceDetailsModal
+        isOpen={isPlaceDetailsModalOpen}
+        onClose={() => {
+          setIsPlaceDetailsModalOpen(false);
+          setPlaceDetailsPlace(null);
+        }}
+        place={placeDetailsPlace}
+      />
       
       {/* Toast Notifications */}
       <Toast
