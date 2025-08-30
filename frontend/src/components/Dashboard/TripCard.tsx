@@ -63,9 +63,9 @@ const TripCard: React.FC<TripCardProps> = ({ trip, onSelect, onDelete, onPromote
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200">
+    <div className={`${trip.isDraft ? 'bg-orange-50 border border-orange-200' : 'bg-white'} rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200`}>
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 relative">
+      <div className={`p-4 border-b ${trip.isDraft ? 'border-orange-200' : 'border-gray-200'} relative`}>
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
@@ -163,10 +163,10 @@ const TripCard: React.FC<TripCardProps> = ({ trip, onSelect, onDelete, onPromote
       </div>
 
       {/* Actions */}
-      <div className="px-4 py-3 bg-gray-50 flex justify-between items-center">
+      <div className={`px-4 py-3 ${trip.isDraft ? 'bg-orange-100' : 'bg-gray-50'} flex justify-between items-center`}>
         <button
           onClick={() => onSelect?.(trip)}
-          className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+          className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-full transition-colors"
         >
           View Details
         </button>
@@ -193,10 +193,10 @@ const TripCard: React.FC<TripCardProps> = ({ trip, onSelect, onDelete, onPromote
           {onDelete && (
             <button
               onClick={() => onDelete(trip.id)}
-              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+              className="px-3 py-1 text-xs font-medium bg-red-100 text-red-700 hover:bg-red-200 rounded-full transition-colors"
               title="Delete trip"
             >
-              <span className="material-symbols-outlined text-base">delete</span>
+              Delete
             </button>
           )}
         </div>

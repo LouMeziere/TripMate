@@ -67,6 +67,10 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleCreateTrip = () => {
+    navigate('/create-trip');
+  };
+
   const getFilteredTrips = () => {
     switch (activeFilter) {
       case 'drafts':
@@ -219,6 +223,7 @@ const Dashboard: React.FC = () => {
         onTripDelete={handleTripDelete}
         onTripPromote={handleTripPromote}
         onTripDemote={handleTripDemote}
+        onCreateTrip={handleCreateTrip}
       />
     </div>
   );
