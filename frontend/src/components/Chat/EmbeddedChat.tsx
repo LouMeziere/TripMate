@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { chatAPI } from '../../services/api';
+import { useTrips } from '../../hooks/useTrips';
 import ChatContainer from './ChatContainer';
 import ChatInput from './ChatInput';
-import { Message } from './ChatMessage';
+import AddToTripModal from './AddToTripModal';
+import ReplaceActivityModal from './ReplaceActivityModal';
+import PlaceDetailsModal from './PlaceDetailsModal';
+import Toast from './Toast';
+import { Message, SearchResult } from './ChatMessage';
 
 interface EmbeddedChatProps {
   tripId: string;
@@ -21,10 +26,30 @@ const EmbeddedChat = forwardRef<EmbeddedChatRef, EmbeddedChatProps>(({
   tripContext,
   className = ""
 }, ref) => {
+  const { trips, updateTrip } = useTrips();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Add to Trip Modal state
+  const [isAddToTripModalOpen, setIsAddToTripModalOpen] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState<SearchResult | null>(null);
+  
+  // Replace Activity Modal state
+  const [isReplaceActivityModalOpen, setIsReplaceActivityModalOpen] = useState(false);
+  const [replaceActivityPlace, setReplaceActivityPlace] = useState<SearchResult | null>(null);
+  
+  // Place Details Modal state
+  const [isPlaceDetailsModalOpen, setIsPlaceDetailsModalOpen] = useState(false);
+  const [placeDetailsPlace, setPlaceDetailsPlace] = useState<SearchResult | null>(null);
+  
+  // Toast notification state
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error';
+    isVisible: boolean;
+  }>({ message: '', type: 'success', isVisible: false });
 
   // Load chat history when component mounts
   useEffect(() => {
@@ -90,6 +115,170 @@ const EmbeddedChat = forwardRef<EmbeddedChatRef, EmbeddedChatProps>(({
 
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);
+  };
+
+  // Utility function to show toast notifications
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type, isVisible: true });
+  };
+
+  // Utility function to calculate trip duration in days
+  const getTripDays = () => {
+    if (!tripContext?.startDate || !tripContext?.endDate) return 1;
+    const start = new Date(tripContext.startDate);
+    const end = new Date(tripContext.endDate);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  // Handle adding a place to the trip
+  const handleAddToTrip = (place: SearchResult) => {
+    try {
+      console.log('Opening add to trip modal for place:', place);
+      setSelectedPlace(place);
+      setIsAddToTripModalOpen(true);
+    } catch (error) {
+      console.error('Error opening add to trip modal:', error);
+      showToast('Error opening add to trip dialog. Please try again.', 'error');
+    }
+  };
+
+  // Handle getting more details about a place
+  const handleGetDetails = (place: SearchResult) => {
+    try {
+      console.log('Opening place details modal for place:', place);
+      setPlaceDetailsPlace(place);
+      setIsPlaceDetailsModalOpen(true);
+    } catch (error) {
+      console.error('Error opening place details modal:', error);
+      showToast('Error opening place details. Please try again.', 'error');
+    }
+  };
+
+  // Handle replacing an activity in the trip
+  const handleReplaceActivity = (place: SearchResult) => {
+    try {
+      console.log('Opening replace activity modal for place:', place);
+      setReplaceActivityPlace(place);
+      setIsReplaceActivityModalOpen(true);
+    } catch (error) {
+      console.error('Error opening replace activity modal:', error);
+      showToast('Error opening replace activity dialog. Please try again.', 'error');
+    }
+  };
+
+  // Handle actually replacing an activity
+  const handleReplaceActivityOnDay = async (dayNumber: number, activityIndex: number, place: SearchResult) => {
+    if (!tripId || !tripContext) {
+      throw new Error('No trip selected');
+    }
+
+    try {
+      // Use the API to replace the activity
+      const response = await fetch(`/api/trips/${tripId}/replace-activity`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          dayNumber,
+          activityIndex,
+          newActivity: {
+            name: place.name,
+            category: place.category || 'general',
+            address: place.address,
+            rating: place.rating
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to replace activity');
+      }
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to replace activity');
+      }
+
+      // Update trips context
+      await updateTrip(tripId, result.data);
+
+      showToast(`Replaced activity with "${place.name}" on Day ${dayNumber}!`, 'success');
+      
+    } catch (error) {
+      console.error('Error replacing activity:', error);
+      throw error;
+    }
+  };
+
+  // Handle actually adding the place to a specific day
+  const handleAddPlaceToDay = async (day: number, place: SearchResult) => {
+    if (!tripId || !tripContext) {
+      throw new Error('No trip selected');
+    }
+
+    try {
+      // Find the current trip
+      const currentTrip = trips.find(trip => trip.id === tripId);
+      if (!currentTrip) {
+        throw new Error('Trip not found');
+      }
+
+      // Create the new activity from the search result
+      const newActivity = {
+        name: place.name,
+        category: place.category || 'general',
+        duration: '2 hours', // Default duration
+        address: place.address,
+        rating: place.rating || 0,
+        description: `Added from search results`,
+        scheduledTime: '', // Will be set automatically or by user later
+        tel: '',
+        email: '',
+        price: place.price || 0
+      };
+
+      // Clone the current itinerary
+      const updatedItinerary = [...currentTrip.itinerary];
+      
+      // Find or create the day
+      let dayPlan = updatedItinerary.find(d => d.day === day);
+      if (!dayPlan) {
+        // Create new day if it doesn't exist
+        dayPlan = { day, activities: [] };
+        updatedItinerary.push(dayPlan);
+        updatedItinerary.sort((a, b) => a.day - b.day);
+      } else {
+        // Make sure we're working with a copy
+        const dayIndex = updatedItinerary.findIndex(d => d.day === day);
+        updatedItinerary[dayIndex] = {
+          ...dayPlan,
+          activities: [...dayPlan.activities, newActivity]
+        };
+      }
+
+      // If we created a new day, add the activity to it
+      if (!dayPlan.activities.includes(newActivity)) {
+        dayPlan.activities = [...dayPlan.activities, newActivity];
+      }
+
+      // Update the trip with the new itinerary
+      const updatedTrip = {
+        ...currentTrip,
+        itinerary: updatedItinerary
+      };
+
+      await updateTrip(tripId, updatedTrip);
+
+      showToast(`Added "${place.name}" to Day ${day} of your trip!`, 'success');
+      
+    } catch (error) {
+      console.error('Error adding place to trip:', error);
+      throw error;
+    }
   };
 
   // Expose methods to parent component
@@ -173,6 +362,9 @@ const EmbeddedChat = forwardRef<EmbeddedChatRef, EmbeddedChatProps>(({
         messages={messages}
         isLoading={isLoading}
         onSuggestionClick={handleSuggestionClick}
+        onAddToTrip={handleAddToTrip}
+        onReplaceActivity={handleReplaceActivity}
+        onGetDetails={handleGetDetails}
         initialSuggestions={getInitialSuggestions()}
         emptyStateMessage="Ask me about modifying your trip or any travel questions!"
       />
@@ -185,6 +377,56 @@ const EmbeddedChat = forwardRef<EmbeddedChatRef, EmbeddedChatProps>(({
           placeholder="Ask about this trip..."
         />
       </div>
+      
+      {/* Add to Trip Modal */}
+      {selectedPlace && (
+        <AddToTripModal
+          isOpen={isAddToTripModalOpen}
+          onClose={() => {
+            setIsAddToTripModalOpen(false);
+            setSelectedPlace(null);
+          }}
+          place={selectedPlace}
+          tripId={tripId}
+          tripTitle={tripTitle}
+          tripDays={getTripDays()}
+          onAddToTrip={handleAddPlaceToDay}
+        />
+      )}
+
+      {/* Replace Activity Modal */}
+      {isReplaceActivityModalOpen && tripContext && (
+        <ReplaceActivityModal
+          isOpen={isReplaceActivityModalOpen}
+          onClose={() => {
+            setIsReplaceActivityModalOpen(false);
+            setReplaceActivityPlace(null);
+          }}
+          place={replaceActivityPlace}
+          tripId={tripId}
+          tripTitle={tripTitle}
+          itinerary={tripContext.itinerary || []}
+          onReplaceActivity={handleReplaceActivityOnDay}
+        />
+      )}
+
+      {/* Place Details Modal */}
+      <PlaceDetailsModal
+        isOpen={isPlaceDetailsModalOpen}
+        onClose={() => {
+          setIsPlaceDetailsModalOpen(false);
+          setPlaceDetailsPlace(null);
+        }}
+        place={placeDetailsPlace}
+      />
+      
+      {/* Toast Notifications */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={() => setToast(prev => ({ ...prev, isVisible: false }))}
+      />
     </div>
   );
 });

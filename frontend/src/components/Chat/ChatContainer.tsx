@@ -1,10 +1,13 @@
 import React from 'react';
-import ChatMessage, { Message } from './ChatMessage';
+import ChatMessage, { Message, SearchResult } from './ChatMessage';
 
 interface ChatContainerProps {
   messages: Message[];
   isLoading?: boolean;
   onSuggestionClick?: (suggestion: string) => void;
+  onAddToTrip?: (place: SearchResult) => void;
+  onReplaceActivity?: (place: SearchResult) => void;
+  onGetDetails?: (place: SearchResult) => void;
   emptyStateMessage?: string;
   disableAutoScroll?: boolean;
   initialSuggestions?: string[];
@@ -14,6 +17,9 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
   messages,
   isLoading = false,
   onSuggestionClick,
+  onAddToTrip,
+  onReplaceActivity,
+  onGetDetails,
   emptyStateMessage = "Start a conversation to plan your perfect trip!",
   initialSuggestions = ["Plan a trip", "Travel tips", "Budget advice"]
 }) => {
@@ -54,12 +60,15 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
 
   return (
     <div className="flex-1 overflow-hidden">
-      <div className="h-full overflow-y-auto p-4 space-y-1">
+      <div className="h-full overflow-y-auto p-3 space-y-1">
         {messages.map((message, index) => (
           <div key={message.id}>
             <ChatMessage 
               message={message} 
               onSuggestionClick={onSuggestionClick}
+              onAddToTrip={onAddToTrip}
+              onReplaceActivity={onReplaceActivity}
+              onGetDetails={onGetDetails}
             />
           </div>
         ))}

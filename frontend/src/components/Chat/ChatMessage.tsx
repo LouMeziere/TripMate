@@ -1,4 +1,26 @@
 import React from 'react';
+import SearchResults from './SearchResults';
+
+export interface SearchResult {
+  id: string;
+  name: string;
+  address: string;
+  category: string;
+  distance?: string;
+  rating?: number;
+  price?: number;
+  website?: string;
+  hours?: any;
+}
+
+export interface SearchResultsData {
+  success: boolean;
+  results: SearchResult[];
+  searchQuery: string;
+  searchLocation: string;
+  resultCount: number;
+  error?: string;
+}
 
 export interface Message {
   id: string;
@@ -6,14 +28,24 @@ export interface Message {
   content: string;
   timestamp: string;
   suggestions?: string[];
+  searchResults?: SearchResultsData;
 }
 
 interface ChatMessageProps {
   message: Message;
   onSuggestionClick?: (suggestion: string) => void;
+  onAddToTrip?: (place: SearchResult) => void;
+  onReplaceActivity?: (place: SearchResult) => void;
+  onGetDetails?: (place: SearchResult) => void;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSuggestionClick }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ 
+  message, 
+  onSuggestionClick, 
+  onAddToTrip,
+  onReplaceActivity,
+  onGetDetails 
+}) => {
   const isUser = message.type === 'user';
   const isAI = message.type === 'ai';
 
@@ -24,9 +56,22 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSuggestionClick })
     });
   };
 
+  // Use wider max-width for AI messages with search results
+  const getMaxWidthClass = () => {
+    if (isUser) {
+      return 'max-w-xs lg:max-w-md';
+    }
+    // AI messages with search results get more width
+    if (isAI && message.searchResults) {
+      return 'max-w-lg lg:max-w-3xl';
+    }
+    // Regular AI messages
+    return 'max-w-md lg:max-w-2xl';
+  };
+
   return (
     <div className={`flex mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`flex max-w-xs lg:max-w-md ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div className={`flex ${getMaxWidthClass()} ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Avatar */}
         <div className={`flex-shrink-0 ${isUser ? 'ml-3' : 'mr-3'}`}>
           {isUser ? (
@@ -80,6 +125,16 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onSuggestionClick })
                 </button>
               ))}
             </div>
+          )}
+
+          {/* Search Results */}
+          {isAI && message.searchResults && (
+            <SearchResults 
+              searchResults={message.searchResults}
+              onAddToTrip={onAddToTrip}
+              onReplaceActivity={onReplaceActivity}
+              onGetDetails={onGetDetails}
+            />
           )}
         </div>
       </div>
