@@ -32,13 +32,15 @@ const TripRequestPreview: React.FC<TripRequestPreviewProps> = ({
   if (isCollapsed) {
     return (
       /* Collapsed Preview - Vertical Strip */
-      <div className="bg-gradient-to-b from-blue-50 to-indigo-50 border border-blue-200 rounded-lg shadow-sm h-80 w-12 flex flex-col items-center justify-between py-3 relative">
-        {/* Document Icon */}
-        <div className="w-6 h-6 bg-blue-100 rounded-md flex items-center justify-center">
-          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-        </div>
+      <div className="bg-gradient-to-b from-blue-50 to-indigo-50 border border-blue-200 rounded-lg shadow-sm h-[478px] w-12 flex flex-col items-center justify-between py-3 relative">
+        {/* Expand Button */}
+        <button
+          onClick={onToggleCollapse}
+          className="text-blue-600 hover:text-blue-800 p-1 rounded-md hover:bg-blue-100 transition-colors"
+          title="Expand preview"
+        >
+          <span className="material-symbols-outlined text-lg">chevron_right</span>
+        </button>
         
         {/* Vertical Text */}
         <div className="flex flex-col items-center space-y-1 flex-1 justify-center">
@@ -51,24 +53,18 @@ const TripRequestPreview: React.FC<TripRequestPreviewProps> = ({
             </span>
           ))}
         </div>
-        
-        {/* Expand Button */}
-        <button
-          onClick={onToggleCollapse}
-          className="text-blue-600 hover:text-blue-800 p-1 rounded-md hover:bg-blue-100 transition-colors"
-          title="Expand preview"
-        >
-          <svg className="w-3 h-3 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-          </svg>
-        </button>
+
+        {/* Document Icon */}
+        <div className="w-6 h-6 bg-blue-100 rounded-md flex items-center justify-center">
+          <span className="material-symbols-outlined text-lg text-blue-600">description</span>
+        </div>
       </div>
     );
   }
 
   return (
     /* Expanded Preview - Chat-like Design */
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm h-[600px] flex flex-col">
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm min-h-[478px] flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
         <button
@@ -76,16 +72,9 @@ const TripRequestPreview: React.FC<TripRequestPreviewProps> = ({
           className="text-blue-600 hover:text-blue-800 p-1 rounded-md hover:bg-blue-100 transition-colors"
           title="Collapse preview"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-          </svg>
+          <span className="material-symbols-outlined text-lg">chevron_left</span>
         </button>
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </div>
           <div>
             <h3 className="text-lg font-semibold text-blue-900">
               {'Current Trip Request'}
@@ -98,10 +87,13 @@ const TripRequestPreview: React.FC<TripRequestPreviewProps> = ({
             </p>
           </div>
         </div>
+        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+            <span className="material-symbols-outlined text-blue-600 text-xl">description</span>
+          </div>
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 p-4 space-y-4">
         {/* Main Trip Request Section */}
         {hasContent ? (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -115,9 +107,7 @@ const TripRequestPreview: React.FC<TripRequestPreviewProps> = ({
         ) : (
           <div className="text-center py-8">
             <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+              <span className="material-symbols-outlined text-gray-400 text-3xl">description</span>
             </div>
             <p className="text-sm text-gray-500">
               Start filling out your trip details to see your personalized request
@@ -151,9 +141,7 @@ const TripRequestPreview: React.FC<TripRequestPreviewProps> = ({
                       className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-red-500 hover:text-red-700 flex-shrink-0"
                       title="Remove this request"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      <span className="material-symbols-outlined text-lg">close</span>
                     </button>
                   )}
                 </div>
@@ -166,9 +154,7 @@ const TripRequestPreview: React.FC<TripRequestPreviewProps> = ({
         {userAdditions.length === 0 && isInteractive && hasContent && (
           <div className="text-center py-4">
             <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
+              <span className="material-symbols-outlined text-gray-400 text-xl">add</span>
             </div>
             <p className="text-sm text-gray-500">Add any special requests or preferences below</p>
           </div>
@@ -186,7 +172,7 @@ const TripRequestPreview: React.FC<TripRequestPreviewProps> = ({
                   value={currentAddition}
                   onChange={(e) => onAdditionChange(e.target.value)}
                   placeholder="Add specific places to visit, or any other preferences..."
-                  className="w-full text-sm border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full text-[12px] border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   rows={2}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -199,15 +185,13 @@ const TripRequestPreview: React.FC<TripRequestPreviewProps> = ({
               <button
                 onClick={onAddRequest}
                 disabled={!currentAddition.trim()}
-                className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors self-start ${
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors self-center ${
                   currentAddition.trim()
                     ? 'bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
+                <span className="material-symbols-outlined text-lg">send</span>
               </button>
             </div>
             <p className="text-xs text-gray-500">Press Enter to add, Shift+Enter for new line</p>
@@ -221,33 +205,24 @@ const TripRequestPreview: React.FC<TripRequestPreviewProps> = ({
                   <textarea
                     value=""
                     placeholder="Additional requests can be added in the Review step..."
-                    className="w-full text-sm border border-gray-300 rounded-lg p-3 bg-gray-50 text-gray-500 cursor-not-allowed resize-none"
+                    className="w-full text-[12px] border border-gray-300 rounded-lg p-3 bg-gray-50 text-gray-500 cursor-not-allowed resize-none"
                     rows={2}
                     disabled
                   />
-                  {/* Lock overlay */}
+                  {/* Overlay */}
                   <div className="absolute inset-0 bg-gray-100 bg-opacity-50 rounded-lg flex items-center justify-center">
-                    <div className="bg-white rounded-full p-2 shadow-sm">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                    </div>
                   </div>
                 </div>
                 <button
                   disabled
-                  className="px-4 py-2 rounded-lg font-medium text-sm bg-gray-200 text-gray-400 cursor-not-allowed self-start"
+                  className="px-4 py-2 rounded-lg font-medium text-sm bg-gray-200 text-gray-400 cursor-not-allowed self-center"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
+                  <span className="material-symbols-outlined text-lg">send</span>
                 </button>
               </div>
             </div>
             <div className="flex items-center justify-center space-x-2 text-xs text-gray-500">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
+              <span className="material-symbols-outlined text-lg">lock</span>
               <span>Available in Review Step</span>
             </div>
           </div>

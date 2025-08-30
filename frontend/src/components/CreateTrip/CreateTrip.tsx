@@ -249,13 +249,13 @@ const CreateTrip: React.FC = () => {
       {/* Main Content - Conditional Layout */}
       {currentStep < 4 ? (
         /* Steps 1-3: Dynamic Layout with Collapsible Sidebar */
-        <div className={`grid grid-cols-1 gap-6 max-w-7xl mx-auto ${
+        <div className={`grid grid-cols-1 gap-6 max-w-6xl mx-auto ${
           isPreviewCollapsed ? 'lg:grid-cols-[1fr_60px]' : 'lg:grid-cols-[2fr_1fr]'
         }`}>
           {/* Form Content */}
           <div className="order-1">
             <div className={`bg-white shadow-lg rounded-lg mb-6 ${
-              isPreviewCollapsed ? 'max-w-4xl mx-auto' : ''
+              isPreviewCollapsed ? 'mx-auto' : ''
             }`}>
               <div className="px-6 py-8">
                 {renderStep()}
