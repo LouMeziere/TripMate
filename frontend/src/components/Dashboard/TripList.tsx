@@ -12,6 +12,7 @@ interface TripListProps {
   onTripDelete?: (tripId: string) => void;
   onTripPromote?: (tripId: string) => void;
   onTripDemote?: (tripId: string) => void;
+  onCreateTrip?: () => void;
 }
 
 const TripList: React.FC<TripListProps> = ({
@@ -23,7 +24,8 @@ const TripList: React.FC<TripListProps> = ({
   onTripEdit,
   onTripDelete,
   onTripPromote,
-  onTripDemote
+  onTripDemote,
+  onCreateTrip
 }) => {
   if (loading) {
     return (
@@ -93,7 +95,10 @@ const TripList: React.FC<TripListProps> = ({
           <p className="text-gray-500 text-sm mb-6">
             Get started by creating your first trip to explore amazing destinations!
           </p>
-          <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+          <button 
+            onClick={onCreateTrip}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
             Plan Your First Trip
           </button>
         </div>
