@@ -7,7 +7,7 @@ import EmbeddedChat, { EmbeddedChatRef } from '../Chat/EmbeddedChat';
 const TripDetails: React.FC = () => {
   const { tripId } = useParams<{ tripId: string }>();
   const navigate = useNavigate();
-  const { trips, loading, fetchTrips } = useTrips();
+  const { trips, loading, fetchTrips, promoteDraftTrip, demoteTripToDraft } = useTrips();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [expandedActivities, setExpandedActivities] = useState<Set<string>>(new Set());
   const [hasFetchedTrips, setHasFetchedTrips] = useState(false);
@@ -275,7 +275,14 @@ const TripDetails: React.FC = () => {
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900 mb-[40px]">{trip.title}</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold text-gray-900">{trip.title}</h1>
+              {trip.isDraft && (
+                <span className="px-3 py-1 bg-orange-100 text-orange-800 text-sm font-medium rounded-full">
+                  DRAFT
+                </span>
+              )}
+            </div>
             <p className="text-gray-600 flex items-center mb-2">
               <span className="material-symbols-outlined text-base mr-1">location_on</span>
               {trip.destination}
@@ -288,9 +295,47 @@ const TripDetails: React.FC = () => {
             </div>
           </div>
           <div className="flex space-x-3">
+            {trip.isDraft && (
+              <button
+                onClick={async () => {
+                  if (window.confirm('Make this draft trip active?')) {
+                    try {
+                      await promoteDraftTrip(trip.id);
+                      const updatedTrip = trips.find(t => t.id === trip.id);
+                      if (updatedTrip) setTrip(updatedTrip);
+                    } catch (error) {
+                      console.error('Failed to promote trip:', error);
+                    }
+                  }
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center"
+              >
+                <span className="material-symbols-outlined text-sm mr-2">upgrade</span>
+                Make Active Trip
+              </button>
+            )}
+            {!trip.isDraft && (
+              <button
+                onClick={async () => {
+                  if (window.confirm('Move this trip back to drafts?')) {
+                    try {
+                      await demoteTripToDraft(trip.id);
+                      const updatedTrip = trips.find(t => t.id === trip.id);
+                      if (updatedTrip) setTrip(updatedTrip);
+                    } catch (error) {
+                      console.error('Failed to demote trip:', error);
+                    }
+                  }
+                }}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center"
+              >
+                <span className="material-symbols-outlined text-sm mr-2">edit_note</span>
+                Move to Drafts
+              </button>
+            )}
             <Link
               to={`/chat/${trip.id}`}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
             >
               <span className="material-symbols-outlined text-sm mr-2">chat</span>
               Full Chat

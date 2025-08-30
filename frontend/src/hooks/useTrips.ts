@@ -3,7 +3,7 @@ import { useTripsContext } from '../contexts/TripsContext';
 import { tripAPI, Trip } from '../services/api';
 
 // Type definitions for API operations
-type CreateTripData = Omit<Trip, 'id' | 'createdAt' | 'updatedAt' | 'status'>;
+type CreateTripData = Omit<Trip, 'id' | 'createdAt' | 'updatedAt' | 'isDraft' | 'promotedAt' | 'demotedAt'>;
 type UpdateTripData = Partial<Trip>;
 
 export const useTrips = () => {
@@ -98,6 +98,56 @@ export const useTrips = () => {
       .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
   }, [state.trips]);
 
+  // Get draft trips
+  const getDraftTrips = useCallback(() => {
+    return state.trips.filter(trip => trip.isDraft === true);
+  }, [state.trips]);
+
+  // Get active (non-draft) trips
+  const getActiveTrips = useCallback(() => {
+    return state.trips.filter(trip => trip.isDraft === false);
+  }, [state.trips]);
+
+  // Create a draft trip
+  const createDraftTrip = useCallback(async (tripData: CreateTripData) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    try {
+      const response = await tripAPI.createDraftTrip(tripData);
+      dispatch({ type: 'ADD_TRIP', payload: response.data });
+      return response.data;
+    } catch (error) {
+      dispatch({ type: 'SET_ERROR', payload: 'Failed to create draft trip' });
+      console.error('Error creating draft trip:', error);
+      throw error;
+    }
+  }, [dispatch]);
+
+  // Promote draft trip to active
+  const promoteDraftTrip = useCallback(async (tripId: string) => {
+    try {
+      const response = await tripAPI.promoteDraftTrip(tripId);
+      dispatch({ type: 'UPDATE_TRIP', payload: response.data });
+      return response.data;
+    } catch (error) {
+      dispatch({ type: 'SET_ERROR', payload: 'Failed to promote draft trip' });
+      console.error('Error promoting draft trip:', error);
+      throw error;
+    }
+  }, [dispatch]);
+
+  // Demote active trip to draft
+  const demoteTripToDraft = useCallback(async (tripId: string) => {
+    try {
+      const response = await tripAPI.demoteTripToDraft(tripId);
+      dispatch({ type: 'UPDATE_TRIP', payload: response.data });
+      return response.data;
+    } catch (error) {
+      dispatch({ type: 'SET_ERROR', payload: 'Failed to demote trip to draft' });
+      console.error('Error demoting trip to draft:', error);
+      throw error;
+    }
+  }, [dispatch]);
+
   return {
     // State
     trips: state.trips,
@@ -113,10 +163,17 @@ export const useTrips = () => {
     selectTrip,
     clearError,
     
+    // Draft trip actions
+    createDraftTrip,
+    promoteDraftTrip,
+    demoteTripToDraft,
+    
     // Helper functions
     getTripsByStatus,
     getUpcomingTrips,
     getCurrentTrips,
     getPastTrips,
+    getDraftTrips,
+    getActiveTrips,
   };
 };

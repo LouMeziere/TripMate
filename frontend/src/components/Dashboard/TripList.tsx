@@ -10,6 +10,8 @@ interface TripListProps {
   onTripSelect?: (trip: Trip) => void;
   onTripEdit?: (trip: Trip) => void;
   onTripDelete?: (tripId: string) => void;
+  onTripPromote?: (tripId: string) => void;
+  onTripDemote?: (tripId: string) => void;
 }
 
 const TripList: React.FC<TripListProps> = ({
@@ -19,7 +21,9 @@ const TripList: React.FC<TripListProps> = ({
   emptyMessage = "No trips found",
   onTripSelect,
   onTripEdit,
-  onTripDelete
+  onTripDelete,
+  onTripPromote,
+  onTripDemote
 }) => {
   if (loading) {
     return (
@@ -105,6 +109,8 @@ const TripList: React.FC<TripListProps> = ({
           trip={trip}
           onSelect={onTripSelect}
           onDelete={onTripDelete}
+          onPromote={onTripPromote}
+          onDemote={onTripDemote}
         />
       ))}
     </div>

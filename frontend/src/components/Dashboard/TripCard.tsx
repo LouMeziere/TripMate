@@ -5,9 +5,11 @@ interface TripCardProps {
   trip: Trip;
   onSelect?: (trip: Trip) => void;
   onDelete?: (tripId: string) => void;
+  onPromote?: (tripId: string) => void;
+  onDemote?: (tripId: string) => void;
 }
 
-const TripCard: React.FC<TripCardProps> = ({ trip, onSelect, onDelete }) => {
+const TripCard: React.FC<TripCardProps> = ({ trip, onSelect, onDelete, onPromote, onDemote }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -66,16 +68,25 @@ const TripCard: React.FC<TripCardProps> = ({ trip, onSelect, onDelete }) => {
       <div className="p-4 border-b border-gray-200 relative">
         <div className="flex justify-between items-start">
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">{trip.title}</h3>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-lg font-semibold text-gray-900">{trip.title}</h3>
+              {trip.isDraft && (
+                <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
+                  DRAFT
+                </span>
+              )}
+            </div>
             <p className="text-gray-600 text-sm flex items-center">
               <span className="material-symbols-outlined text-base mr-1">location_on</span>
               {trip.destination}
             </p>
           </div>
         </div>
-        <span className={`absolute top-4 right-4 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(trip.status)}`}>
-          {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
-        </span>
+        {!trip.isDraft && (
+          <span className={`absolute top-4 right-4 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(trip.status)}`}>
+            {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
+          </span>
+        )}
       </div>
 
       {/* Content */}
@@ -161,6 +172,24 @@ const TripCard: React.FC<TripCardProps> = ({ trip, onSelect, onDelete }) => {
         </button>
         
         <div className="flex space-x-2">
+          {trip.isDraft && onPromote && (
+            <button
+              onClick={() => onPromote(trip.id)}
+              className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 hover:bg-green-200 rounded-full transition-colors"
+              title="Make active trip"
+            >
+              Make Active
+            </button>
+          )}
+          {!trip.isDraft && onDemote && (
+            <button
+              onClick={() => onDemote(trip.id)}
+              className="px-3 py-1 text-xs font-medium bg-orange-100 text-orange-700 hover:bg-orange-200 rounded-full transition-colors"
+              title="Move to drafts"
+            >
+              Move to Drafts
+            </button>
+          )}
           {onDelete && (
             <button
               onClick={() => onDelete(trip.id)}

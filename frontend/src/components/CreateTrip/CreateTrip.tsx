@@ -149,6 +149,7 @@ const CreateTrip: React.FC = () => {
         budget: formData.budget,
         pace: formData.pace,
         categories: formData.categories,
+        status: 'planned' as const,
         itinerary: response.data.itinerary || [],
       };
 

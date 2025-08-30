@@ -14,10 +14,14 @@ const Dashboard: React.FC = () => {
     deleteTrip,
     getUpcomingTrips,
     getCurrentTrips,
-    getPastTrips
+    getPastTrips,
+    getDraftTrips,
+    getActiveTrips,
+    promoteDraftTrip,
+    demoteTripToDraft
   } = useTrips();
 
-  const [activeFilter, setActiveFilter] = useState<'all' | 'upcoming' | 'current' | 'past'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'drafts' | 'upcoming' | 'current' | 'past'>('all');
 
   useEffect(() => {
     fetchTrips();
@@ -43,8 +47,30 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleTripPromote = async (tripId: string) => {
+    if (window.confirm('Make this draft trip active?')) {
+      try {
+        await promoteDraftTrip(tripId);
+      } catch (error) {
+        console.error('Failed to promote trip:', error);
+      }
+    }
+  };
+
+  const handleTripDemote = async (tripId: string) => {
+    if (window.confirm('Move this trip back to drafts?')) {
+      try {
+        await demoteTripToDraft(tripId);
+      } catch (error) {
+        console.error('Failed to demote trip:', error);
+      }
+    }
+  };
+
   const getFilteredTrips = () => {
     switch (activeFilter) {
+      case 'drafts':
+        return getDraftTrips();
       case 'upcoming':
         return getUpcomingTrips();
       case 'current':
@@ -60,6 +86,8 @@ const Dashboard: React.FC = () => {
 
   const getFilterCount = (filter: string) => {
     switch (filter) {
+      case 'drafts':
+        return getDraftTrips().length;
       case 'upcoming':
         return getUpcomingTrips().length;
       case 'current':
@@ -73,6 +101,8 @@ const Dashboard: React.FC = () => {
 
   const getEmptyMessage = () => {
     switch (activeFilter) {
+      case 'drafts':
+        return 'No draft trips yet';
       case 'upcoming':
         return 'No upcoming trips planned';
       case 'current':
@@ -148,6 +178,7 @@ const Dashboard: React.FC = () => {
           <nav className="-mb-px flex space-x-8">
             {[
               { key: 'all', label: 'All Trips', count: trips.length },
+              { key: 'drafts', label: 'Drafts', count: getFilterCount('drafts') },
               { key: 'upcoming', label: 'Upcoming', count: getFilterCount('upcoming') },
               { key: 'current', label: 'Current', count: getFilterCount('current') },
               { key: 'past', label: 'Past', count: getFilterCount('past') }
@@ -186,6 +217,8 @@ const Dashboard: React.FC = () => {
         onTripSelect={handleTripSelect}
         onTripEdit={handleTripEdit}
         onTripDelete={handleTripDelete}
+        onTripPromote={handleTripPromote}
+        onTripDemote={handleTripDemote}
       />
     </div>
   );
