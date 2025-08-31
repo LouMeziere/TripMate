@@ -78,7 +78,7 @@ export const useTrips = () => {
   const getUpcomingTrips = useCallback(() => {
     const now = new Date();
     return state.trips
-      .filter(trip => new Date(trip.startDate) > now)
+      .filter(trip => !trip.isDraft && new Date(trip.startDate) > now)
       .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
   }, [state.trips]);
 
@@ -87,14 +87,14 @@ export const useTrips = () => {
     return state.trips.filter(trip => {
       const startDate = new Date(trip.startDate);
       const endDate = new Date(trip.endDate);
-      return startDate <= now && endDate >= now;
+      return !trip.isDraft && startDate <= now && endDate >= now;
     });
   }, [state.trips]);
 
   const getPastTrips = useCallback(() => {
     const now = new Date();
     return state.trips
-      .filter(trip => new Date(trip.endDate) < now)
+      .filter(trip => !trip.isDraft && new Date(trip.endDate) < now)
       .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
   }, [state.trips]);
 
