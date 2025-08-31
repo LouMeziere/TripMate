@@ -42,6 +42,7 @@ const tripsReducer = (state: TripsState, action: TripsAction): TripsState => {
       return { 
         ...state, 
         trips: [...state.trips, action.payload],
+        loading: false,
         error: null 
       };
     
