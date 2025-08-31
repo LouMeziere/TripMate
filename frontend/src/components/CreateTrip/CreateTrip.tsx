@@ -46,7 +46,7 @@ const INITIAL_FORM_DATA: TripFormData = {
 
 const CreateTrip: React.FC = () => {
   const navigate = useNavigate();
-  const { createTrip } = useTrips();
+  const { createDraftTrip } = useTrips();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<TripFormData>(INITIAL_FORM_DATA);
@@ -179,8 +179,8 @@ const CreateTrip: React.FC = () => {
         itinerary: response.data.itinerary || [],
       };
 
-      // Create the trip - this will add it to the context automatically
-      const newTrip = await createTrip(tripData);
+      // Create the trip as a draft - this will add it to the context automatically
+      const newTrip = await createDraftTrip(tripData);
       
       // Add a small delay to ensure the context has updated
       await new Promise(resolve => setTimeout(resolve, 100));
