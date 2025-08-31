@@ -278,7 +278,7 @@ const Chat: React.FC = () => {
 
     try {
       // Use the API to replace the activity
-      const response = await fetch(`/api/trips/${tripId}/replace-activity`, {
+      const response = await fetch(`/api/trips/tripId/${tripId}/replace-activity`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
