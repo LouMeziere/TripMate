@@ -1,6 +1,16 @@
 # TripMate 🧳
 
-A full-stack React application for AI-powered trip planning with three core features: Dashboard, Trip Creation, and Chat Interface.
+A full-stack React application for AI-powered tr4. **Start the development environment (run both servers)**
+   ```bash
+   # From the root directory - starts both backend and frontend
+   npm run dev
+   ```
+
+   This will start:
+   - **Backend API Server**: `http://localhost:3001` (handles data and AI)
+   - **Frontend React App**: `http://localhost:3000` (what users see)
+
+5. **Open your browser** with three core features: Dashboard, Trip Creation, and Chat Interface.
 
 ## 🎯 Project Overview
 
@@ -46,7 +56,22 @@ TripMate transforms trip planning by combining the power of AI with an intuitive
    cd ..
    ```
 
-3. **Start the development environment (run both servers)**
+3. **Set up API keys (required for AI and location features)**
+   ```bash
+   # Copy the environment template
+   cp .env.example .env
+   ```
+   
+   Then edit `.env` and add your API keys:
+   - **Google Gemini AI**: Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+   - **Foursquare Places**: Get your API key from [Foursquare Developer Portal](https://developer.foursquare.com/)
+   
+   ```env
+   GEMINI_API_KEY=your_actual_gemini_key_here
+   FOURSQUARE_API_KEY=your_actual_foursquare_key_here
+   ```
+
+4. **Start the development environment (run both servers)**
    ```bash
    # From the root directory - starts both backend and frontend
    npm run dev
