@@ -46,12 +46,13 @@ const INITIAL_FORM_DATA: TripFormData = {
 
 const CreateTrip: React.FC = () => {
   const navigate = useNavigate();
-  const { createTrip, loading } = useTrips();
+  const { createTrip } = useTrips();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<TripFormData>(INITIAL_FORM_DATA);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false); // Local loading state
   
   // User additions state
   const [userAdditions, setUserAdditions] = useState<string[]>([]);
@@ -146,6 +147,7 @@ const CreateTrip: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    setIsGenerating(true); // Start loading
     try {
       // Generate natural language paragraph from form data
       let tripDescription = convertFormDataToParagraph(formData);
@@ -155,8 +157,6 @@ const CreateTrip: React.FC = () => {
         const additionalRequests = userAdditions.join(' ');
         tripDescription += ` Additional requests: ${additionalRequests}`;
       }
-      
-      console.log('Generated trip description:', tripDescription);
       
       // Call backend to generate trip using the paragraph
       const response = await tripAPI.generateTrip(tripDescription, true); // Use real AI generation
@@ -175,19 +175,23 @@ const CreateTrip: React.FC = () => {
         budget: formData.budget,
         pace: formData.pace,
         categories: formData.categories,
-        status: 'planned' as const,
         userAdditions: userAdditions,
         itinerary: response.data.itinerary || [],
       };
 
+      // Create the trip - this will add it to the context automatically
       const newTrip = await createTrip(tripData);
-      console.log('Trip created successfully:', newTrip);
       
-      // Navigate to dashboard or trip detail
-      navigate('/dashboard');
+      // Add a small delay to ensure the context has updated
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Navigate to the newly created trip detail page
+      navigate(`/trip/${newTrip.id}`);
     } catch (error) {
       console.error('Failed to create trip:', error);
       setFormErrors({ submit: 'Failed to create trip. Please try again.' });
+    } finally {
+      setIsGenerating(false); // Stop loading
     }
   };
 
@@ -223,7 +227,6 @@ const CreateTrip: React.FC = () => {
             data={formData}
             errors={formErrors}
             onSubmit={handleSubmit}
-            loading={loading}
           />
         );
       default:
@@ -340,14 +343,20 @@ const CreateTrip: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={loading}
-                  className={`px-4 py-2 text-sm font-medium rounded-md ${
-                    loading
+                  disabled={isGenerating}
+                  className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${
+                    isGenerating
                       ? 'bg-gray-400 text-white cursor-not-allowed'
                       : 'bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500'
                   }`}
                 >
-                  {loading ? 'Generating Draft...' : 'Generate Draft'}
+                  {isGenerating && (
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  <span>{isGenerating ? 'Generating Trip...' : 'Generate Draft'}</span>
                 </button>
               </div>
             </div>

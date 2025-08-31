@@ -22,7 +22,7 @@ const TripDetails: React.FC = () => {
       // Trips are already loaded (e.g., navigating from dashboard), mark as fetched
       setHasFetchedTrips(true);
     }
-  }, [trips.length, loading, fetchTrips, hasFetchedTrips]);
+  }, [trips, loading, fetchTrips, hasFetchedTrips, tripId]);
 
   useEffect(() => {
     if (tripId && hasFetchedTrips && !loading) {

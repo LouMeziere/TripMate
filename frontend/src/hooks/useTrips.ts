@@ -3,7 +3,7 @@ import { useTripsContext } from '../contexts/TripsContext';
 import { tripAPI, Trip } from '../services/api';
 
 // Type definitions for API operations
-type CreateTripData = Omit<Trip, 'id' | 'createdAt' | 'updatedAt' | 'isDraft' | 'promotedAt' | 'demotedAt'>;
+type CreateTripData = Omit<Trip, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'isDraft' | 'promotedAt' | 'demotedAt'>;
 type UpdateTripData = Partial<Trip>;
 
 export const useTrips = () => {
