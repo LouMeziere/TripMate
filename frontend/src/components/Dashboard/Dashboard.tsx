@@ -145,8 +145,8 @@ const Dashboard: React.FC = () => {
           <div className="flex flex-wrap gap-4 mb-6 bg-gray-50 p-4 rounded-lg shadow-sm">
             <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500 flex items-center justify-between flex-1 min-w-0">
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase">Total</p>
-                <p className="text-xl font-bold text-gray-900">{trips.length}</p>
+                <p className="text-xs font-medium text-gray-500 uppercase">Active Trips</p>
+                <p className="text-xl font-bold text-gray-900">{getActiveTrips().length}</p>
               </div>
               <span className="material-symbols-outlined text-xl text-blue-600">assignment_turned_in</span>
             </div>

@@ -33,11 +33,18 @@ TripMate transforms trip planning by combining the power of AI with an intuitive
 ### Prerequisites (What you need installed)
 
 - **Node.js** (v16 or higher) - JavaScript runtime for running the server
+  - Download from [nodejs.org](https://nodejs.org/)
+  - Choose the LTS (Long Term Support) version
 - **npm** - Package manager (comes with Node.js)
 - **Git** - Version control system
-- **A code editor** - VS Code is recommended
+  - Windows: Download from [git-scm.com](https://git-scm.com/)
+  - macOS: Install via Xcode Command Line Tools or Homebrew
+  - Linux: Install via your package manager (`sudo apt install git` on Ubuntu)
+- **A code editor** - VS Code is recommended ([code.visualstudio.com](https://code.visualstudio.com/))
 
 ### Installation & Setup
+
+**Note for Windows users**: You can use Command Prompt, PowerShell, or Git Bash. PowerShell is recommended as it's more similar to Unix terminals and supports most of the same commands.
 
 1. **Clone the repository (download the code)**
    ```bash
@@ -57,6 +64,14 @@ TripMate transforms trip planning by combining the power of AI with an intuitive
    ```
 
 3. **Set up API keys (required for AI and location features)**
+   
+   **On Windows (Command Prompt or PowerShell):**
+   ```cmd
+   # Copy the environment template
+   copy .env.example .env
+   ```
+   
+   **On macOS/Linux (Terminal):**
    ```bash
    # Copy the environment template
    cp .env.example .env
@@ -72,6 +87,8 @@ TripMate transforms trip planning by combining the power of AI with an intuitive
    ```
 
 4. **Start the development environment (run both servers)**
+   
+   **All platforms (Windows/macOS/Linux):**
    ```bash
    # From the root directory - starts both backend and frontend
    npm run dev
@@ -81,7 +98,7 @@ TripMate transforms trip planning by combining the power of AI with an intuitive
    - **Backend API Server**: `http://localhost:3001` (handles data and AI)
    - **Frontend React App**: `http://localhost:3000` (what users see)
 
-4. **Open your browser**
+5. **Open your browser**
    - Navigate to `http://localhost:3000` to see the application
    - The React app will automatically send API requests to the Express server
 
@@ -139,22 +156,38 @@ Visit `http://localhost:3000` and test:
 
 ### 2. Backend API Testing (Server Endpoints)
 
-Test the backend endpoints directly using curl commands in your terminal:
+Test the backend endpoints directly using curl commands:
 
-**Health Check**
-```bash
+**Windows (PowerShell):**
+```powershell
+# Health Check
 curl http://localhost:3001/api/health
-# Expected: {"status":"Server is running!"}
-```
 
-**Get All Trips**
-```bash
+# Get All Trips
 curl http://localhost:3001/api/trips
-# Returns: Array of 3 dummy trips (Paris, Tokyo, London)
+
+# Create New Trip
+curl -X POST http://localhost:3001/api/trips `
+  -H "Content-Type: application/json" `
+  -d '{
+    "title": "Weekend in Rome",
+    "destination": "Rome, Italy",
+    "startDate": "2025-09-15",
+    "endDate": "2025-09-17",
+    "travelers": 2,
+    "budget": "medium"
+  }'
 ```
 
-**Create New Trip**
+**macOS/Linux (Terminal):**
 ```bash
+# Health Check
+curl http://localhost:3001/api/health
+
+# Get All Trips
+curl http://localhost:3001/api/trips
+
+# Create New Trip
 curl -X POST http://localhost:3001/api/trips \
   -H "Content-Type: application/json" \
   -d '{
@@ -167,8 +200,12 @@ curl -X POST http://localhost:3001/api/trips \
   }'
 ```
 
+**Alternative for all platforms:**
+You can also use tools like [Postman](https://www.postman.com/) or [Insomnia](https://insomnia.rest/) for a GUI-based API testing experience.
+
 **Generate Trip (with dummy data)**
 ```bash
+# All platforms
 curl -X POST http://localhost:3001/api/generate-trip \
   -H "Content-Type: application/json" \
   -d '{
@@ -179,6 +216,7 @@ curl -X POST http://localhost:3001/api/generate-trip \
 
 **Chat with AI Assistant**
 ```bash
+# All platforms
 curl -X POST http://localhost:3001/api/chat \
   -H "Content-Type: application/json" \
   -d '{
@@ -223,12 +261,24 @@ npm run build        # Build React app for production deployment
 # Try reinstalling dependencies
 npm install                    # For backend
 cd frontend && npm install     # For frontend
+cd ..                          # Return to root directory
 ```
 
-**"npm: command not found":**
-- Node.js and npm aren't installed properly
+**Windows-specific: "npm: command not found" or "'npm' is not recognized":**
+- Node.js and npm aren't installed properly or not in PATH
 - Download and install Node.js from [nodejs.org](https://nodejs.org/)
+- **Important for Windows**: Choose "Add to PATH" during installation
+- Restart Command Prompt/PowerShell after installation
+- Verify installation: `node --version` and `npm --version`
+
+**macOS/Linux: "npm: command not found":**
+- Install Node.js from [nodejs.org](https://nodejs.org/) or use a package manager
 - Restart your terminal after installation
+
+**Windows-specific issues:**
+- **PowerShell Execution Policy**: If you get "execution policy" errors, run PowerShell as Administrator and execute: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+- **Path separators**: Use forward slashes (/) in commands even on Windows, or the Windows equivalents will be shown where different
+- **Port conflicts**: Windows may show different messages for port conflicts - close other applications using ports 3000 or 3001
 
 **Frontend shows "Loading..." forever:**
 - Check if the backend server is running (should show messages in terminal)
